@@ -2,7 +2,7 @@
 
 //Serial Pointer
 HardwareSerial *SerialCom;
-
+int val;
 
 void setup(void)
 {
@@ -13,10 +13,11 @@ void setup(void)
 }
 
 void loop() {
-  SerialCom->write("FUCKKKK");
-  if(SerialCom->available()){
-    data = SerialCom->read()
-    SerialCom->println(data);
+  SerialCom->println("FUCK");
+  if (SerialCom->available()){
+      int val = SerialCom->read();
+      SerialCom->println("recieved");
+  }
   }
 
-}
+  
