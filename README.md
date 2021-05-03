@@ -7,5 +7,5 @@
   * Kalman & fuzzy WIP
 
 ## Week 8 
-![video](https://youtu.be/3e5DxT6VL3k)
+[![Video](http://img.youtube.com/vi/3e5DxT6VL3k/0.jpg)](http://www.youtube.com/watch?v=3e5DxT6VL3k)
 
