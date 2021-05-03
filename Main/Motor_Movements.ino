@@ -34,20 +34,19 @@ bool align()
 
   //moves side closest to wall outwards to prevent collision
   int sideMeasurement;
-  if(SIDE_1_READING > SIDE_2_READING){
-    sideMeasurement = SIDE_2_READING;
+  if(IR_1_READING > IR_2_READING){
+    sideMeasurement = IR_2_READING;
   }
   else{
-    sideMeasurement = SIDE_1_READING;
+    sideMeasurement = IR_1_READING;
   }
 
-  //sideMeasurement = (SIDE_1_READING + SIDE_2_READING)/2;
-  int side_distance_correction = side_distance_PID.PID_update(sideTarget, SIDE_1_READING); // target, measuremet);
-  int side_orientation_correction = side_orientation_PID.PID_update(10, SIDE_1_READING - SIDE_2_READING);
+  int side_distance_correction = side_distance_PID.PID_update(sideTarget, IR_1_READING); // target, measuremet);
+  int side_orientation_correction = side_orientation_PID.PID_update(10, IR_1_READING - IR_2_READING);
 
 #if DISP_READINGS
-  SerialCom->print("SIDE_1_READING - SIDE_2_READING = ");
-  SerialCom->println(SIDE_1_READING - SIDE_2_READING);
+  SerialCom->print("IR_1_READING - IR_2_READING = ");
+  SerialCom->println(IR_1_READING - IR_2_READING);
   SerialCom->print("side_orientation_correction = ");
   SerialCom->println(side_orientation_correction);
   SerialCom->print("side_distance_correction = ");
@@ -60,7 +59,7 @@ bool align()
   right_rear_motor.writeMicroseconds(1500 - side_orientation_correction + side_distance_correction);
   right_font_motor.writeMicroseconds(1500 - side_orientation_correction - side_distance_correction);
 
-  if (abs(SIDE_1_READING - SIDE_2_READING) < 10 && abs(sideTarget - SIDE_1_READING) < 2 ) {
+  if (abs(IR_1_READING - IR_2_READING) < 10 && abs(sideTarget - IR_1_READING) < 2 ) {
     return true;  // movement complete
   }
   else {
@@ -74,23 +73,23 @@ bool forward()
   
   //moves side closest to wall outwards to prevent collision
   int sideMeasurement;
-  if(SIDE_1_READING > SIDE_2_READING){
-    sideMeasurement = SIDE_2_READING;
+  if(IR_1_READING > IR_2_READING){
+    sideMeasurement = IR_2_READING;
   }
   else{
-    sideMeasurement = SIDE_1_READING;
+    sideMeasurement = IR_1_READING;
   }
 
  int ultrasonicReading = get_ultrasonic_range();
 
   
-  int side_distance_correction = side_distance_PID.PID_update(sideTarget, SIDE_1_READING); // target, measuremet);
-  int side_orientation_correction = side_orientation_PID.PID_update(10, SIDE_1_READING - SIDE_2_READING); //difference of 15 to get robot straight, can change this
+  int side_distance_correction = side_distance_PID.PID_update(sideTarget, IR_1_READING); // target, measuremet);
+  int side_orientation_correction = side_orientation_PID.PID_update(10, IR_1_READING - IR_2_READING); //difference of 15 to get robot straight, can change this
   int speed_val = ultrasonic_PID.PID_update(ultrasonicTarget, ultrasonicReading);
 
 #if DISP_READINGS
-  SerialCom->print("SIDE_1_READING - SIDE_2_READING = ");
-  SerialCom->println(SIDE_1_READING - SIDE_2_READING);
+  SerialCom->print("IR_1_READING - IR_2_READING = ");
+  SerialCom->println(IR_1_READING - IR_2_READING);
   SerialCom->print("side_orientation_correction = ");
   SerialCom->println(side_orientation_correction);
   SerialCom->print("side_distance_correction = ");
@@ -117,22 +116,22 @@ void reverse ()
 {
  //moves side closest to wall outwards to prevent collision
   int sideMeasurement;
-  if(SIDE_1_READING > SIDE_2_READING){
-    sideMeasurement = SIDE_1_READING;
+  if(IR_1_READING > IR_2_READING){
+    sideMeasurement = IR_1_READING;
   }
   else{
-    sideMeasurement = SIDE_2_READING;
+    sideMeasurement = IR_2_READING;
   }
   
   int side_distance_correction = side_distance_PID.PID_update(sideTarget, sideMeasurement); // target, measuremet);
-  int side_orientation_correction = side_orientation_PID.PID_update(0, SIDE_1_READING - SIDE_2_READING); //difference of 15 to get robot straight, can change this
+  int side_orientation_correction = side_orientation_PID.PID_update(0, IR_1_READING - IR_2_READING); //difference of 15 to get robot straight, can change this
   int speed_val = ultrasonic_PID.PID_update(ultrasonicTarget, get_ultrasonic_range());
 
 
   
 #if DISP_READINGS
-  SerialCom->print("SIDE_1_READING - SIDE_2_READING = ");
-  SerialCom->println(SIDE_1_READING - SIDE_2_READING);
+  SerialCom->print("IR_1_READING - IR_2_READING = ");
+  SerialCom->println(IR_1_READING - IR_2_READING);
   SerialCom->print("side_orientation_correction = ");
   SerialCom->println(side_orientation_correction);
   SerialCom->print("side_distance_correction = ");
@@ -155,19 +154,7 @@ bool ccw ()
 
 bool cw ()
 {
-  //update_angle();
-  //int angular_displacement = integrate(currentAngle);
-  
-//  int gyro_corr = gyro_PID.PID_update(GYRO_TARGET_ANGLE, -currentAngle); // target, measuremet);
   int gyro_corr = gyro_PID.PID_update(GYRO_TARGET_ANGLE, currentAngle); // target, measuremet);
-  //int side_orientation_correction = side_orientation_PID.PID_update(0, SIDE_1_READING - SIDE_2_READING); //difference of 15 to get robot straight, can change this
-  //int speed_val = ultrasonic_PID.PID_update(ultrasonicTarget, get_ultrasonic_range());
-//  left_font_motor.writeMicroseconds(1500 - gyro_corr);
-//  left_rear_motor.writeMicroseconds(1500 - gyro_corr);
-//  right_rear_motor.writeMicroseconds(1500 - gyro_corr);
-//  right_font_motor.writeMicroseconds(1500 - gyro_corr);
-
-/// Uncomment this if the robot is turning the other way OR change GYRO_TARGET_ANGLE
   left_font_motor.writeMicroseconds(1500 + gyro_corr);
   left_rear_motor.writeMicroseconds(1500 + gyro_corr);
   right_rear_motor.writeMicroseconds(1500 + gyro_corr);
