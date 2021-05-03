@@ -20,8 +20,8 @@
 #define DISP_READINGS 1
 #define SAMPLING_TIME 20 //ms , operate at 50Hz
 #define GYRO_READING analogRead(A3)
-#define SIDE_1_READING analogRead(A4)
-#define SIDE_2_READING analogRead(A6)
+#define IR_1_READING analogRead(A4)
+#define IR_2_READING analogRead(A6)
 
 #define GYRO_TARGET_ANGLE 90
 #define ULTRASONIC_MOVE_THRESH 100
@@ -44,39 +44,14 @@ static float rotationThreshold = 1.5;  // because of gyro drifting, defining rot
 static float gyroRate = 0;             // read out value of sensor in voltage
 static float currentAngle = 0;         // current angle calculated by angular velocity integral on
 
-
-
-
 //-------------------------------PID OBJECTS-----// Kp, Ki, Kd, limMin, limMax
-
 PID gyro_PID(2.5f, 0.0f, 0.1f, -200, 200);
 PID side_distance_PID(5.0f, 0.005f, 4.0f, -125, 125);
 PID side_orientation_PID(5.0f, 0.005f, 4.0f, -75, 75);
 PID ultrasonic_PID(2.0f, 0.0f, 0.0f, -300, 300);
 
-//PID gyro_PID(0.2f, 0.0f, 0.0f, -200, 200);
-//PID side_distance_PID(5.0f, 0.0f, 0.0f, -100, 100);
-//PID side_orientation_PID(5.0f, 0.0f, 0.0f, -100, 100);
-//PID ultrasonic_PID(2.0f, 0.0f, 0.0f, -200, 200);
-
-//PID gyro_PID(0.2f, 0.01f, 0.0f, -200, 200);
-//PID side_distance_PID(7.0f, 0.025f, 0.008f, -100, 100);
-//PID side_orientation_PID(5.0f, 0.05f, 0.002f, -100, 100);
-//PID ultrasonic_PID(2.0f, 0.001f, 0.0f, -300, 300);
-
-//PID gyro_PID(0.2f, 0.01f, 0.0f, -200, 200);
-//PID side_distance_PID(7.0f, 0.05f, 0.05f, -100, 100);
-//PID side_orientation_PID(5.0f, 0.05f, 0.002f, -100, 100);
-//PID ultrasonic_PID(2.0f, 0.001df, 0.0f, -400, 400);
-
-
-
-static int sideTarget = 291; 
-//static int ultrasonicTarget = 580; // pulse width not cm
-static double ultrasonicTarget = 110; //150 - (235/2.0) - 15;//in mm (235/2) is half of robot length, 15 is length of ultrasonic sensor NEEDS TO CHANGE AFTER ULTRASONIC SENSOR MOUNTING
-
-// Variable for get_ultrasonic_range()
-static int prev_mm = 0;
+static int sideTarget = 291; //analogRead
+static double ultrasonicTarget = 110; //mm
 
 //-----------------Default motor control pins--------------
 const byte left_front = 46;
@@ -103,7 +78,6 @@ Servo right_font_motor;  // create servo object to control Vex Motor Controller 
 Servo turret_motor;
 //-----------------------------------------------------------------------------------------------------------
 
-
 //Serial Pointer
 HardwareSerial *SerialCom;
 
@@ -121,10 +95,8 @@ void setup(void)
   SerialCom = &Serial;
   SerialCom->begin(115200);
   SerialCom->println("Setup....");
-  SerialCom->println("PID init....");
 
-  
-  delay(1000); //settling time but no really needed
+  delay(1000); //settling time
 }
 
 void loop(void)
@@ -153,7 +125,6 @@ STATE initialising() {
   SerialCom->println("Enabling Motors...");
   enable_motors();
   gyro_setup();
-  SerialCom->println("ADJUSTMENT STATE...");
   return RUNNING;
 }
 
@@ -165,15 +136,10 @@ STATE running() {
   static int movement_state = 1;
   static bool movement_complete = false;
 
-
   fast_flash_double_LED_builtin();
 
   //-----------------MOVEMENT STATE MACHINE---------------------
   if (millis() - previous_millis_1 > SAMPLING_TIME) {
-//    SerialCom ->print("movement state = ");
-//    SerialCom->println(movement_state);
-//    SerialCom->print("count = ");
-//    SerialCom->println(count);
     previous_millis_1 = millis();
 
     if (movement_state == 0) {
@@ -195,7 +161,7 @@ STATE running() {
 
     else if (movement_state == 2) {
       // FORWARD STATE
-      movement_complete = forward();   
+      movement_complete = forward();
 
       if (movement_complete && count != 3) {
         currentAngle = 0;
@@ -213,15 +179,14 @@ STATE running() {
       // TURNING CW STATE
       update_angle();
       movement_complete = cw();
+      if (movement_complete && count != 3) {
+        movement_state = 1; // Change to movement_state = 1 so that the robot aligns after the turn
+        count++;
+      }
+      else if (!movement_complete && count != 3) {
+        movement_state = 3;
+      }
 
-        if (movement_complete && count != 3) {
-          movement_state = 1; // Change to movement_state = 1 so that the robot aligns after the turn
-          count++;
-        }
-        else if (!movement_complete && count != 3) {
-          movement_state = 3;
-        }
-        
     }
 
   }
@@ -264,14 +229,9 @@ STATE stopped() {
     previous_millis = millis();
     SerialCom->println("STOPPED---------");
 
-    
     side_reading();
-
-
-#if DISP_READINGS    
     update_angle();
     ultrasonic_reading();
-#endif
 
 #ifndef NO_BATTERY_V_OK
     //500ms timed if statement to check lipo and output speed settings
