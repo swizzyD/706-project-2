@@ -23,8 +23,10 @@ void loop() {
 
 float Kalman(float rawdata, float prev_est){   // Kalman Filter
   float a_priori_est, a_post_est, a_priori_var, a_post_var, kalman_gain;
-
-  a_priori_est = prev_est;  
+  if (prev_est != 0xFF ){
+    a_priori_est = prev_est; 
+  }
+   
   a_priori_var = process_noise; 
 
   kalman_gain = a_priori_var/(a_priori_var+sensor_noise);
