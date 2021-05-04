@@ -61,16 +61,16 @@ void fuzzify_ultrasonic() {
   double fuzzy, obstacle, clear;
   double reading = get_ultrasonic_distance();
   //ultrasonic obstacle detection
-  if (reading > 100) {
+  if (reading > 200) {
     obstacle = 0;
     clear = 1;
   }
-  else if (reading < 50) {
+  else if (reading < 100) {
     obstacle = 1;
     clear = 0;
   }
   else {
-    clear = 1 - (reading - 50) / 50;
+    clear = 1 - (reading - 100) / 100;
     obstacle = 1 - clear;
   }
 
@@ -90,28 +90,36 @@ void run_inference() {
   
   //obstacle avoidance
   if (ir_1_fuzzy.set == "obstacle" && ultrasonic_fuzzy.set == "clear" && ir_2_fuzzy.set == "clear") {
-    strafe_right(ir_2_fuzzy.value);
+    strafe_right(ir_2_fuzzy.value *200);
+    SerialCom->println("strafe right");
   }
   else if (ir_1_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "clear" && ir_2_fuzzy.set == "obstacle") {
-    strafe_left(ir_1_fuzzy.value);
+    strafe_left(ir_1_fuzzy.value*200);
+    SerialCom->println("strafe left");
   }
   else if (ir_1_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "clear") {
     reverse(200);
+    SerialCom->println("reverse");
   }
   else if (ir_1_fuzzy.set == "obstacle" && ultrasonic_fuzzy.set == "clear" && ir_2_fuzzy.set == "obstacle") {
     stop();
+    SerialCom->println("stop");
   }
   else if (ir_1_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "obstacle") {
-    ccw(ir_1_fuzzy.value);
+    ccw(ir_1_fuzzy.value*200);
+    SerialCom->println("ccw");
   }
   else if (ir_1_fuzzy.set == "obstacle" && ultrasonic_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "clear") {
-    cw(ir_2_fuzzy.value);
+    cw(ir_2_fuzzy.value*200);
+    SerialCom->println("cw");
   }
   else if (ir_1_fuzzy.set == "obstacle" && ultrasonic_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "obstacle") {
     stop();
+    SerialCom->println("stop");
   }
   else if (ir_1_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "clear" && ir_2_fuzzy.set == "clear") {
-    forward(ultrasonic_fuzzy.value);
+    forward(ultrasonic_fuzzy.value*100);
+    SerialCom->println("forward");
   }
 
   //light detection

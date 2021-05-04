@@ -31,18 +31,18 @@ void stop()
 
 void forward(double speed_val)
 {
-  left_font_motor.writeMicroseconds(1500 - speed_val);
-  left_rear_motor.writeMicroseconds(1500 - speed_val);
-  right_rear_motor.writeMicroseconds(1500 + speed_val);
-  right_font_motor.writeMicroseconds(1500 + speed_val);
-}
-
-void reverse(double speed_val)
-{
   left_font_motor.writeMicroseconds(1500 + speed_val);
   left_rear_motor.writeMicroseconds(1500 + speed_val);
   right_rear_motor.writeMicroseconds(1500 - speed_val);
   right_font_motor.writeMicroseconds(1500 - speed_val);
+}
+
+void reverse(double speed_val)
+{
+  left_font_motor.writeMicroseconds(1500 - speed_val);
+  left_rear_motor.writeMicroseconds(1500 - speed_val);
+  right_rear_motor.writeMicroseconds(1500 + speed_val);
+  right_font_motor.writeMicroseconds(1500 + speed_val);
 }
 
 void ccw(double speed_val)

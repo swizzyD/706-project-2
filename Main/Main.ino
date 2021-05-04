@@ -10,15 +10,18 @@
     Turnigy nano-tech 2200mah 2S https://hobbyking.com/en_us/turnigy-nano-tech-2200mah-2s-25-50c-lipo-pack.html
 */
 
+#include <SoftwareSerial.h>
+
+
 #include <math.h>
 #include <Servo.h>  //Need for Servo pulse output
 #include "PID_class.h"
-#include"Fuzzy_class.h"
+#include "Fuzzy_class.h"
 
 
-//#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
+#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
 #define DISP_READINGS 1
-#define SAMPLING_TIME 20 //ms , operate at 50Hz
+#define SAMPLING_TIME 50 //ms , operate at 50Hz
 #define GYRO_READING analogRead(A3)
 #define IR_1_READING analogRead(A4)
 #define IR_2_READING analogRead(A6)
@@ -58,7 +61,6 @@ const byte right_rear = 50;
 const byte right_front = 51;
 //---------------------------------------------------------------------------------------------------------
 
-
 //-----------Ultrasonic pins--------------------------------------------------------
 const int TRIG_PIN = 48;
 const int ECHO_PIN = 49;
@@ -77,6 +79,7 @@ Servo turret_motor;
 //-----------------------------------------------------------------------------------------------------------
 
 //Serial Pointer
+SoftwareSerial hc06(2,3);
 HardwareSerial *SerialCom;
 
 int pos = 0;
@@ -93,6 +96,7 @@ void setup(void)
   SerialCom = &Serial;
   SerialCom->begin(115200);
   SerialCom->println("Setup....");
+  hc06.begin(115200);
 
   delay(1000); //settling time
 }
@@ -137,12 +141,11 @@ STATE running() {
   //main loop
   if (millis() - previous_millis_1 > SAMPLING_TIME) {
     previous_millis_1 = millis();
-
+    hc06.println("fuck");
     fuzzify_ir_1();
     fuzzify_ir_2();
     fuzzify_ultrasonic();
     run_inference();
-
   }
 
   //debug loop

@@ -30,7 +30,7 @@ double get_ir_1()
   // short range IR sensor trendline dist = 15350 * val^-0.947
   double A = 25325,   beta = -1.048;
   double dist;
-  dist = A * pow(IR_2_READING, beta);
+  dist = A * pow(IR_1_READING, beta);
   return dist;
 }
 
