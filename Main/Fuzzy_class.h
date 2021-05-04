@@ -1,16 +1,5 @@
 
-
-class Fuzzy{
-  private:
-  
-  public: 
-  
+struct Fuzzy_output{
+  String set;
+  double value;
 };
-
-Fuzzy::Fuzzy(){
-
-}
-
-int Fuzzy::Fuzzy_update(){
-  
-}

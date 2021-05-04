@@ -1,4 +1,4 @@
-int get_ultrasonic_range()
+int get_ultrasonic_distance()
 {
   long duration, mm;
 
@@ -27,31 +27,23 @@ int get_ultrasonic_range()
 
 double get_ir_1()
 {
-  // Returns distances in cm from short IR sensor GP2Y0A41SK0F
-  // 5V
-  // Adapted from https://www.smart-prototyping.com/blog/Sharp-Distance-Measuring-Sensor-GP2Y0A41SK0F-Tutorial
-  double distance;
-  double volts = IR_1_READING * 0.0048828125; // value from sensor * (5/1024)
-
-  distance = 13 * pow(volts, -1); //side 1 distance in cm in d[0]
-
-  return distance;
+  // short range IR sensor trendline dist = 15350 * val^-0.947
+  double A = 25325,   beta = -1.048;
+  double dist;
+  dist = A * pow(IR_2_READING, beta);
+  return dist;
 }
 
 double get_ir_2()
 {
-  // Returns distances in cm from short IR sensor GP2Y0A41SK0F
-  // 5V
-  // Adapted from https://www.smart-prototyping.com/blog/Sharp-Distance-Measuring-Sensor-GP2Y0A41SK0F-Tutorial
-  double distance;
-  double volts = IR_2_READING * 0.0048828125; // value from sensor * (5/1024)
-
-  distance = 13 * pow(volts, -1); //side 1 distance in cm in d[0]
-
-  return distance;
+  // short range IR sensor trendline dist = 18126 * val^-0.963
+  double A = 25610,   beta = -1.032;
+  double dist;
+  dist = A * pow(IR_2_READING, beta);
+  return dist;
 }
 
-void side_reading()
+void ir_reading()
 {
   SerialCom->print("IR_1_reading:");
   SerialCom->println(IR_1_READING);
@@ -62,7 +54,7 @@ void side_reading()
 void ultrasonic_reading()
 {
   SerialCom->print("ultrasonic reading:");
-  SerialCom->println(get_ultrasonic_range());
+  SerialCom->println(get_ultrasonic_distance());
 }
 
 void gyro_reading()
