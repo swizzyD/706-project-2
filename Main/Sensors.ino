@@ -19,20 +19,9 @@ int get_ultrasonic_range()
   pinMode(ECHO_PIN, INPUT);
   duration = pulseIn(ECHO_PIN, HIGH);
 
-
   // Convert the time into a distance
   mm = (duration / 2.0) / 2.91;
-
-
-  // Rejecting out of range values and jitter
-  //  // Recursively calling get_ultrasonic_range() until mm is a valid value
-  //  if ((mm > 4000) || (abs(prev_mm - mm) >  ULTRASONIC_MOVE_THRESH)) {
-//    mm = get_ultrasonic_range();
-//  }
-
-
-  prev_mm = mm;
-
+  
   return mm;
 }
 
@@ -42,7 +31,7 @@ double get_ir_1()
   // 5V
   // Adapted from https://www.smart-prototyping.com/blog/Sharp-Distance-Measuring-Sensor-GP2Y0A41SK0F-Tutorial
   double distance;
-  double volts = SIDE_1_READING * 0.0048828125; // value from sensor * (5/1024)
+  double volts = IR_1_READING * 0.0048828125; // value from sensor * (5/1024)
 
   distance = 13 * pow(volts, -1); //side 1 distance in cm in d[0]
 
@@ -55,20 +44,19 @@ double get_ir_2()
   // 5V
   // Adapted from https://www.smart-prototyping.com/blog/Sharp-Distance-Measuring-Sensor-GP2Y0A41SK0F-Tutorial
   double distance;
-  double volts = SIDE_2_READING * 0.0048828125; // value from sensor * (5/1024)
+  double volts = IR_2_READING * 0.0048828125; // value from sensor * (5/1024)
 
   distance = 13 * pow(volts, -1); //side 1 distance in cm in d[0]
 
   return distance;
 }
 
-
 void side_reading()
 {
-  SerialCom->print("side 1_reading:");
-  SerialCom->println(SIDE_1_READING);
-  SerialCom->print("side 2_reading:");
-  SerialCom->println(SIDE_2_READING);
+  SerialCom->print("IR_1_reading:");
+  SerialCom->println(IR_1_READING);
+  SerialCom->print("IR_2_reading:");
+  SerialCom->println(IR_2_READING);
 }
 
 void ultrasonic_reading()
@@ -127,6 +115,5 @@ void update_angle()
   SerialCom->print(angularVelocity);
   SerialCom->print(" Current Angle: ");
   SerialCom->println(currentAngle);
-
 
 }
