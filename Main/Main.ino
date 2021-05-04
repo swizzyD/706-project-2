@@ -13,6 +13,7 @@
 #include <math.h>
 #include <Servo.h>  //Need for Servo pulse output
 #include "PID_class.h"
+#include "Sensors.h"
 
 
 //#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
@@ -22,7 +23,6 @@
 #define GYRO_READING analogRead(A3)
 #define IR_1_READING analogRead(A4)
 #define IR_2_READING analogRead(A6)
-
 #define GYRO_TARGET_ANGLE 90
 #define ULTRASONIC_MOVE_THRESH 100
 
@@ -50,6 +50,25 @@ PID side_distance_PID(5.0f, 0.005f, 4.0f, -125, 125);
 PID side_orientation_PID(5.0f, 0.005f, 4.0f, -75, 75);
 PID ultrasonic_PID(2.0f, 0.0f, 0.0f, -300, 300);
 
+//-----------Ultrasonic pins--------------------------------------------------------
+const int TRIG_PIN = 48;
+const int ECHO_PIN = 49;
+// Anything over 400 cm (23200 us pulse) is "out of range".
+// Hint:If you decrease to this the ranging sensor but the timeout is short, you may not need to read up to 4meters.
+const unsigned int MAX_DIST = 23200;
+//--------------------------------------------------------------------------------------------------------------
+
+
+//---------------------------------------------- SENSOR OBJECTS -------------------------------------------------------------
+Infrared IR_1(A4, 25325, -1.048, 1, 1); //Infrared(pin,A,beta,process_noise,sensor_noise)
+Infrared IR_2(A6, 25610, -1.032, 1, 1);
+Phototransistor PT_Mid(A15,79.992, 156.79, 1, 10); //Phototransistor(pin,A,B,process_noise,sensor_noise)
+Phototransistor PT_Left(A14,79.992, 156.79, 1, 10);
+Phototransistor PT_Right(A13,79.992, 156.79, 1, 10);
+Ultrasonic Ultrasonic(ECHO_PIN, TRIG_PIN);
+// Gyro????
+//-----------------------------------------------------------------------------------------
+
 static int sideTarget = 291; //analogRead
 static double ultrasonicTarget = 110; //mm
 
@@ -61,14 +80,7 @@ const byte right_front = 51;
 //---------------------------------------------------------------------------------------------------------
 
 
-//-----------Ultrasonic pins--------------------------------------------------------
-const int TRIG_PIN = 48;
-const int ECHO_PIN = 49;
 
-// Anything over 400 cm (23200 us pulse) is "out of range".
-// Hint:If you decrease to this the ranging sensor but the timeout is short, you may not need to read up to 4meters.
-const unsigned int MAX_DIST = 23200;
-//--------------------------------------------------------------------------------------------------------------
 
 //----------------------Servo Objects---------------------------------------------------------------------------
 Servo left_font_motor;  // create servo object to control Vex Motor Controller 29
