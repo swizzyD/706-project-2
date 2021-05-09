@@ -8,6 +8,10 @@
 
 ## Week 8 
 ![image](Week8.gif "image")
+  * Code cleanup - changed SIDE_MEASUREMENT to IR_MEASUREMENT
+  * Updated get_ir functions, use sams curve fitting
+  * prototype fuzzy obstacle detection
 
-## 5th May 2021
-  * Added Sensors.h with Kalman filters for phototransistors and IR
+## Week 9
+![image](Week9.gif "image")
+  * Integrate classes with Walter's fuzzy logic code

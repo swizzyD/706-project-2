@@ -10,19 +10,23 @@
     Turnigy nano-tech 2200mah 2S https://hobbyking.com/en_us/turnigy-nano-tech-2200mah-2s-25-50c-lipo-pack.html
 */
 
+#include <SoftwareSerial.h>
+
+
 #include <math.h>
 #include <Servo.h>  //Need for Servo pulse output
-#include "PID_class.h"
 #include "Sensors.h"
+#include "PID_class.h"
+#include "Fuzzy_class.h"
 
 
-//#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
-
+#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
 #define DISP_READINGS 1
-#define SAMPLING_TIME 20 //ms , operate at 50Hz
+#define SAMPLING_TIME 50 //ms , operate at 50Hz
 #define GYRO_READING analogRead(A3)
 #define IR_1_READING analogRead(A4)
 #define IR_2_READING analogRead(A6)
+
 #define GYRO_TARGET_ANGLE 90
 #define ULTRASONIC_MOVE_THRESH 100
 
@@ -44,33 +48,12 @@ static float rotationThreshold = 1.5;  // because of gyro drifting, defining rot
 static float gyroRate = 0;             // read out value of sensor in voltage
 static float currentAngle = 0;         // current angle calculated by angular velocity integral on
 
-//-------------------------------PID OBJECTS-----// Kp, Ki, Kd, limMin, limMax
-PID gyro_PID(2.5f, 0.0f, 0.1f, -200, 200);
-PID side_distance_PID(5.0f, 0.005f, 4.0f, -125, 125);
-PID side_orientation_PID(5.0f, 0.005f, 4.0f, -75, 75);
-PID ultrasonic_PID(2.0f, 0.0f, 0.0f, -300, 300);
-
-//-----------Ultrasonic pins--------------------------------------------------------
-const int TRIG_PIN = 48;
-const int ECHO_PIN = 49;
-// Anything over 400 cm (23200 us pulse) is "out of range".
-// Hint:If you decrease to this the ranging sensor but the timeout is short, you may not need to read up to 4meters.
-const unsigned int MAX_DIST = 23200;
-//--------------------------------------------------------------------------------------------------------------
-
-
-//---------------------------------------------- SENSOR OBJECTS -------------------------------------------------------------
-Infrared IR_1(A4, 25325, -1.048, 1, 1); //Infrared(pin,A,beta,process_noise,sensor_noise)
-Infrared IR_2(A6, 25610, -1.032, 1, 1);
-Phototransistor PT_Mid(A15,79.992, 156.79, 1, 10); //Phototransistor(pin,A,B,process_noise,sensor_noise)
-Phototransistor PT_Left(A14,79.992, 156.79, 1, 10);
-Phototransistor PT_Right(A13,79.992, 156.79, 1, 10);
-Ultrasonic Ultrasonic(ECHO_PIN, TRIG_PIN);
-// Gyro????
-//-----------------------------------------------------------------------------------------
-
-static int sideTarget = 291; //analogRead
-static double ultrasonicTarget = 110; //mm
+//------------------Fuzzy-------------------------
+Fuzzy_output ir_1_fuzzy;
+Fuzzy_output ir_2_fuzzy;
+Fuzzy_output ultrasonic_fuzzy;
+Fuzzy_output PT_fuzzy;
+//-----------------------------------------------------
 
 //-----------------Default motor control pins--------------
 const byte left_front = 46;
@@ -79,8 +62,23 @@ const byte right_rear = 50;
 const byte right_front = 51;
 //---------------------------------------------------------------------------------------------------------
 
+//-----------Ultrasonic pins--------------------------------------------------------
+const int TRIG_PIN = 48;
+const int ECHO_PIN = 49;
 
+// Anything over 400 cm (23200 us pulse) is "out of range".
+// Hint:If you decrease to this the ranging sensor but the timeout is short, you may not need to read up to 4meters.
+const unsigned int MAX_DIST = 23200;
+//--------------------------------------------------------------------------------------------------------------
 
+//---------------------------------------------- SENSOR OBJECTS -------------------------------------------------------------
+Infrared IR_1(A4, 25325, -1.048, 1, 1); //Infrared(pin,A,beta,process_noise,sensor_noise)
+Infrared IR_2(A6, 25610, -1.032, 1, 1);
+Phototransistor PT_Mid(A15,79.992, 156.79, 1, 10); //Phototransistor(pin,A,B,process_noise,sensor_noise)
+Phototransistor PT_Left(A14,79.992, 156.79, 1, 10);
+Phototransistor PT_Right(A13,79.992, 156.79, 1, 10);
+Ultrasonic Ultrasonic(ECHO_PIN, TRIG_PIN);
+//-----------------------------------------------------------------------------------------
 
 //----------------------Servo Objects---------------------------------------------------------------------------
 Servo left_font_motor;  // create servo object to control Vex Motor Controller 29
@@ -91,6 +89,7 @@ Servo turret_motor;
 //-----------------------------------------------------------------------------------------------------------
 
 //Serial Pointer
+SoftwareSerial hc06(2,3);
 HardwareSerial *SerialCom;
 
 int pos = 0;
@@ -107,6 +106,7 @@ void setup(void)
   SerialCom = &Serial;
   SerialCom->begin(115200);
   SerialCom->println("Setup....");
+  hc06.begin(115200);
 
   delay(1000); //settling time
 }
@@ -136,7 +136,7 @@ STATE initialising() {
   SerialCom->println("INITIALISING....");
   SerialCom->println("Enabling Motors...");
   enable_motors();
-  gyro_setup();
+//  gyro_setup();
   return RUNNING;
 }
 
@@ -145,68 +145,34 @@ STATE running() {
 
   static unsigned long previous_millis_1;
   static unsigned long previous_millis_2;
-  static int movement_state = 1;
-  static bool movement_complete = false;
 
   fast_flash_double_LED_builtin();
 
-  //-----------------MOVEMENT STATE MACHINE---------------------
+  //main loop
   if (millis() - previous_millis_1 > SAMPLING_TIME) {
     previous_millis_1 = millis();
-
-    if (movement_state == 0) {
-      // STOP STATE
-      stop();
-      return STOPPED;
-    }
-
-    else if (movement_state == 1) {
-      // ALGINING STATE
-      movement_complete = align();
-      if (movement_complete) {
-        movement_state = 2;
-      }
-      else if (!movement_complete) {
-        movement_state = 1;
-      }
-    }
-
-    else if (movement_state == 2) {
-      // FORWARD STATE
-      movement_complete = forward();
-
-      if (movement_complete && count != 3) {
-        currentAngle = 0;
-        movement_state = 3;
-      }
-      else if (movement_complete && count == 3) {
-        movement_state = 0;
-      }
-      else if (!movement_complete && count != 3) {
-        movement_state = 2;
-      }
-    }
-
-    else if (movement_state == 3) {
-      // TURNING CW STATE
-      update_angle();
-      movement_complete = cw();
-      if (movement_complete && count != 3) {
-        movement_state = 1; // Change to movement_state = 1 so that the robot aligns after the turn
-        count++;
-      }
-      else if (!movement_complete && count != 3) {
-        movement_state = 3;
-      }
-
-    }
-
+    hc06.println("fuck");
+    fuzzify_ir_1();
+    fuzzify_ir_2();
+    fuzzify_ultrasonic();
+    run_inference();
   }
 
-
+  //debug loop
   if (millis() - previous_millis_2 > 500) {
     previous_millis_2 = millis();
-    SerialCom->println("RUNNING---------");
+#if DISP_READINGS
+    SerialCom->print("ir_1_fuzzy = ");
+    SerialCom->print(ir_1_fuzzy.set + ": ");
+    SerialCom->println(ir_1_fuzzy.value);
+    SerialCom->print("ir_2_fuzzy = ");
+    SerialCom->print(ir_2_fuzzy.set + ": ");
+    SerialCom->println(ir_2_fuzzy.value);
+    SerialCom->print("ultrasonic_fuzzy = ");
+    SerialCom->print(ultrasonic_fuzzy.set + ": ");
+    SerialCom->println(ultrasonic_fuzzy.value);
+    SerialCom->println();
+#endif
 
 #ifndef NO_BATTERY_V_OK
     if (!is_battery_voltage_OK()) return STOPPED;
@@ -241,9 +207,7 @@ STATE stopped() {
     previous_millis = millis();
     SerialCom->println("STOPPED---------");
 
-    side_reading();
-    update_angle();
-    ultrasonic_reading();
+
 
 #ifndef NO_BATTERY_V_OK
     //500ms timed if statement to check lipo and output speed settings
