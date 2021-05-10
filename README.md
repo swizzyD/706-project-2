@@ -8,4 +8,6 @@
 
 ## Week 8 
 ![image](Week8.gif "image")
-
+  * Code cleanup - changed SIDE_MEASUREMENT to IR_MEASUREMENT
+  * Updated get_ir functions, use sams curve fitting
+  * prototype fuzzy obstacle detection
