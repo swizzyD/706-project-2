@@ -86,6 +86,64 @@ void fuzzify_ultrasonic() {
 
 //-----------------------------------------------------
 
+void fuzzify_pt_left(){
+  double fuzzy, light, clear;
+  double reading = PT_LEFT_READING;
+  //ultrasonic obstacle detection
+  if (reading > 700) {
+    light = 0;
+    clear = 1;
+  }
+  else if (reading < 50) {
+    light = 1;
+    clear = 0;
+  }
+  else {
+    clear = 1 - (reading - 50) / 650;
+    light = 1 - clear;
+  }
+
+  if (light > clear) {
+    PT_left_fuzzy.set = "light";
+    PT_left_fuzzy.value = light;
+  }
+  else {
+    PT_left_fuzzy.set = "clear";
+    PT_left_fuzzy.value = clear;
+  }
+}
+
+//------------------------------------------------------
+
+void fuzzify_pt_mid(){
+  double fuzzy, light, clear;
+  double reading = PT_MID_READING;
+  //ultrasonic obstacle detection
+  if (reading > 800) {
+    light = 0;
+    clear = 1;
+  }
+  else if (reading < 50) {
+    light = 1;
+    clear = 0;
+  }
+  else {
+    clear = 1 - (reading - 50) / 750;
+    light = 1 - clear;
+  }
+
+  if (light > clear) {
+    PT_mid_fuzzy.set = "light";
+    PT_mid_fuzzy.value = light;
+  }
+  else {
+    PT_mid_fuzzy.set = "clear";
+    PT_mid_fuzzy.value = clear;
+  }
+}
+
+//------------------------------------------------------
+
 void run_inference() {
   
   //obstacle avoidance
@@ -97,7 +155,7 @@ void run_inference() {
     strafe_left(ir_1_fuzzy.value*200);
     SerialCom->println("strafe left");
   }
-  else if (ir_1_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "clear") {
+  else if (ir_1_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "clear" && PT_mid_fuzzy.set == "clear") {
     reverse(200);
     SerialCom->println("reverse");
   }
@@ -117,12 +175,22 @@ void run_inference() {
     stop();
     SerialCom->println("stop");
   }
-  else if (ir_1_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "clear" && ir_2_fuzzy.set == "clear") {
-    forward(ultrasonic_fuzzy.value*100);
-    SerialCom->println("forward");
-  }
+
 
   //light detection
+else if(PT_mid_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "clear"){
+  cw(100);
+  SerialCom->println("spin");
+}
 
+  //light detection
+else if(PT_mid_fuzzy.set == "light" && ultrasonic_fuzzy.set == "obstacle"){
+  forward(100);
+  SerialCom->println("detected");
+}
+else{
+  stop();
+  SerialCom->println("no operation");
+}
   
 }
