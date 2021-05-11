@@ -10,18 +10,23 @@
     Turnigy nano-tech 2200mah 2S https://hobbyking.com/en_us/turnigy-nano-tech-2200mah-2s-25-50c-lipo-pack.html
 */
 
+#include <SoftwareSerial.h>
 #include <math.h>
 #include <Servo.h>  //Need for Servo pulse output
 #include "PID_class.h"
+#include "Fuzzy_class.h"
 
 
 //#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
-
 #define DISP_READINGS 1
-#define SAMPLING_TIME 20 //ms , operate at 50Hz
+#define BLUETOOTH 1
+#define SAMPLING_TIME 50 //ms , operate at 20Hz
 #define GYRO_READING analogRead(A3)
 #define IR_1_READING analogRead(A4)
 #define IR_2_READING analogRead(A6)
+#define PT_LEFT_READING analogRead(A13)
+#define PT_MID_READING analogRead(A14)
+#define PT_RIGHT_READING analogRead(A15)
 
 #define GYRO_TARGET_ANGLE 90
 #define ULTRASONIC_MOVE_THRESH 100
@@ -44,14 +49,14 @@ static float rotationThreshold = 1.5;  // because of gyro drifting, defining rot
 static float gyroRate = 0;             // read out value of sensor in voltage
 static float currentAngle = 0;         // current angle calculated by angular velocity integral on
 
-//-------------------------------PID OBJECTS-----// Kp, Ki, Kd, limMin, limMax
-PID gyro_PID(2.5f, 0.0f, 0.1f, -200, 200);
-PID side_distance_PID(5.0f, 0.005f, 4.0f, -125, 125);
-PID side_orientation_PID(5.0f, 0.005f, 4.0f, -75, 75);
-PID ultrasonic_PID(2.0f, 0.0f, 0.0f, -300, 300);
-
-static int sideTarget = 291; //analogRead
-static double ultrasonicTarget = 110; //mm
+//------------------Fuzzy outputs-------------------------
+Fuzzy_output ir_1_fuzzy;
+Fuzzy_output ir_2_fuzzy;
+Fuzzy_output ultrasonic_fuzzy;
+Fuzzy_output PT_left_fuzzy;
+Fuzzy_output PT_mid_fuzzy;
+Fuzzy_output PT_right_fuzzy;
+//-----------------------------------------------------
 
 //-----------------Default motor control pins--------------
 const byte left_front = 46;
@@ -59,7 +64,6 @@ const byte left_rear = 47;
 const byte right_rear = 50;
 const byte right_front = 51;
 //---------------------------------------------------------------------------------------------------------
-
 
 //-----------Ultrasonic pins--------------------------------------------------------
 const int TRIG_PIN = 48;
@@ -78,8 +82,14 @@ Servo right_font_motor;  // create servo object to control Vex Motor Controller 
 Servo turret_motor;
 //-----------------------------------------------------------------------------------------------------------
 
-//Serial Pointer
+//Serial pointer
+
+#if BLUETOOTH
+SoftwareSerial hc06(2, 3);
+SoftwareSerial *SerialCom;
+#else
 HardwareSerial *SerialCom;
+#endif
 
 int pos = 0;
 void setup(void)
@@ -92,10 +102,13 @@ void setup(void)
   digitalWrite(TRIG_PIN, LOW);
 
   // Setup the Serial port and pointer, the pointer allows switching the debug info through the USB port(Serial) or Bluetooth port(Serial1) with ease.
+#if BLUETOOTH
+  SerialCom = &hc06;
+#else
   SerialCom = &Serial;
+#endif
   SerialCom->begin(115200);
   SerialCom->println("Setup....");
-
   delay(1000); //settling time
 }
 
@@ -133,83 +146,47 @@ STATE running() {
 
   static unsigned long previous_millis_1;
   static unsigned long previous_millis_2;
-  static int movement_state = 1;
-  static bool movement_complete = false;
 
   fast_flash_double_LED_builtin();
 
-  //-----------------MOVEMENT STATE MACHINE---------------------
+  //main loop
   if (millis() - previous_millis_1 > SAMPLING_TIME) {
     previous_millis_1 = millis();
+    fuzzify_ir_1();
+    fuzzify_ir_2();
+    fuzzify_ultrasonic();
+    fuzzify_pt_mid();
+    run_inference();
 
-    if (movement_state == 0) {
-      // STOP STATE
-      stop();
-      return STOPPED;
-    }
 
-    else if (movement_state == 1) {
-      // ALGINING STATE
-      movement_complete = align();
-      if (movement_complete) {
-        movement_state = 2;
-      }
-      else if (!movement_complete) {
-        movement_state = 1;
-      }
-    }
-
-    else if (movement_state == 2) {
-      // FORWARD STATE
-      movement_complete = forward();
-
-      if (movement_complete && count != 3) {
-        currentAngle = 0;
-        movement_state = 3;
-      }
-      else if (movement_complete && count == 3) {
-        movement_state = 0;
-      }
-      else if (!movement_complete && count != 3) {
-        movement_state = 2;
-      }
-    }
-
-    else if (movement_state == 3) {
-      // TURNING CW STATE
-      update_angle();
-      movement_complete = cw();
-      if (movement_complete && count != 3) {
-        movement_state = 1; // Change to movement_state = 1 so that the robot aligns after the turn
-        count++;
-      }
-      else if (!movement_complete && count != 3) {
-        movement_state = 3;
-      }
-
-    }
+    turret_motor.write(80);
 
   }
 
-
+  //debug loop
   if (millis() - previous_millis_2 > 500) {
     previous_millis_2 = millis();
-    SerialCom->println("RUNNING---------");
+#if DISP_READINGS
+    SerialCom->print("ir_1_fuzzy = ");
+    SerialCom->print(ir_1_fuzzy.set + ": ");
+    SerialCom->println(ir_1_fuzzy.value);
+    SerialCom->print("ir_2_fuzzy = ");
+    SerialCom->print(ir_2_fuzzy.set + ": ");
+    SerialCom->println(ir_2_fuzzy.value);
+    SerialCom->print("ultrasonic_fuzzy = ");
+    SerialCom->print(ultrasonic_fuzzy.set + ": ");
+    SerialCom->println(ultrasonic_fuzzy.value);
+    SerialCom->println();
+    SerialCom->print(PT_mid_fuzzy.set + ": ");
+    SerialCom->println(PT_mid_fuzzy.value);
+    SerialCom->println();
+#endif
 
 #ifndef NO_BATTERY_V_OK
     if (!is_battery_voltage_OK()) return STOPPED;
 #endif
 
 
-    turret_motor.write(pos);
-    if (pos == 0)
-    {
-      pos = 45;
-    }
-    else
-    {
-      pos = 0;
-    }
   }
 
   return RUNNING;
@@ -229,8 +206,7 @@ STATE stopped() {
     previous_millis = millis();
     SerialCom->println("STOPPED---------");
 
-    side_reading();
-    update_angle();
+    ir_reading();
     ultrasonic_reading();
 
 #ifndef NO_BATTERY_V_OK

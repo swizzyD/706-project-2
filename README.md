@@ -12,6 +12,8 @@
   * Updated get_ir functions, use sams curve fitting
   * prototype fuzzy obstacle detection
 
+
 ## Week 9
 ![image](Week9.gif "image")
   * Integrate classes with Walter's fuzzy logic code
+
