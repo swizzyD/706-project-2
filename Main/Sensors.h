@@ -19,8 +19,7 @@ class Sensor {
 class Infrared: public Sensor{
   public:
     Infrared(int pin, double A, double beta) : Sensor(pin) {
-      this->process_noise = process_noise;
-      this->sensor_noise = sensor_noise;
+      this->analogPin = pin;
       this->A = A;
       this->beta = beta;
     }
@@ -29,9 +28,7 @@ class Infrared: public Sensor{
       // short range IR sensor trendline dist = A * val^beta
       double dist, est;
       dist = this->A * pow(this->get_raw_reading(), this->beta);
-      est = this->filter(dist);
-      this->set_last_est(est);
-      return est;
+      return dist;
     }
   private:
     double A;
@@ -41,6 +38,7 @@ class Infrared: public Sensor{
 class Phototransistor: public Sensor {
   public:
     Phototransistor(int pin, double A, double B): Sensor(pin) {
+      this->analogPin = pin;
       this-> A = A;
       this-> B = B;
     }
@@ -49,9 +47,7 @@ class Phototransistor: public Sensor {
       // Converts Phototransistor readings into distance (mm)
       // Looks like an logarithmic relationship: dist = A*ln(raw) - B
       double dist =  this->A * log(this->get_raw_reading() - this->B);
-      double est = this->filter(dist);
-      this->set_last_est(est);
-      return est;
+      return dist;
     }
 
   private:
