@@ -14,12 +14,12 @@
 #include <math.h>
 #include <Servo.h>  //Need for Servo pulse output
 #include "PID_class.h"
-#include "Fuzzy_class.h"
+#include "Fuzzy_Output_Struct.h"
 
 
 //#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
 #define DISP_READINGS 1
-#define BLUETOOTH 1
+#define BLUETOOTH 0
 #define SAMPLING_TIME 50 //ms , operate at 20Hz
 #define GYRO_READING analogRead(A3)
 #define IR_1_READING analogRead(A4)
@@ -208,6 +208,7 @@ STATE stopped() {
 
     ir_reading();
     ultrasonic_reading();
+    SerialCom->println(PT_MID_READING);
 
 #ifndef NO_BATTERY_V_OK
     //500ms timed if statement to check lipo and output speed settings
