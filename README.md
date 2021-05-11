@@ -17,4 +17,5 @@
   * need new mounts for new PT
   * new long range IR placed at from to detect obstacles behind
   * need to redo rule base, with new sensors
+  * added sensor class functionality
 
