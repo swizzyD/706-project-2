@@ -78,9 +78,9 @@ const unsigned int MAX_DIST = 23200;
 //---------------------------------------------- SENSOR OBJECTS -------------------------------------------------------------
 Infrared IR_1(A4, 25325, -1.048); //Infrared(pin,A,beta)
 Infrared IR_2(A6, 25610, -1.032);
-Phototransistor PT_Mid(A15,79.992, 156.79); //Phototransistor(pin,A,B)
-Phototransistor PT_Left(A14,79.992, 156.79);
-Phototransistor PT_Right(A13,79.992, 156.79);
+Phototransistor PT_Mid(A14,79.992, 156.79); //Phototransistor(pin,A,B)
+Phototransistor PT_Left(A13,79.992, 156.79);
+Phototransistor PT_Right(A15,79.992, 156.79);
 Ultrasonic Ultrasonic(ECHO_PIN, TRIG_PIN);
 //-----------------------------------------------------------------------------------------
 
