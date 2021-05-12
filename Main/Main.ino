@@ -11,21 +11,24 @@
 */
 
 #include <SoftwareSerial.h>
-
-
 #include <math.h>
 #include <Servo.h>  //Need for Servo pulse output
 #include "Sensors.h"
 #include "PID_class.h"
-#include "Fuzzy_class.h"
+#include "Fuzzy_Output_Struct.h"
 
 
-#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
+
+//#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
 #define DISP_READINGS 1
-#define SAMPLING_TIME 50 //ms , operate at 50Hz
+#define BLUETOOTH 0
+#define SAMPLING_TIME 50 //ms , operate at 20Hz
 #define GYRO_READING analogRead(A3)
 #define IR_1_READING analogRead(A4)
 #define IR_2_READING analogRead(A6)
+#define PT_LEFT_READING analogRead(A13)
+#define PT_MID_READING analogRead(A14)
+#define PT_RIGHT_READING analogRead(A15)
 
 #define GYRO_TARGET_ANGLE 90
 #define ULTRASONIC_MOVE_THRESH 100
@@ -48,11 +51,13 @@ static float rotationThreshold = 1.5;  // because of gyro drifting, defining rot
 static float gyroRate = 0;             // read out value of sensor in voltage
 static float currentAngle = 0;         // current angle calculated by angular velocity integral on
 
-//------------------Fuzzy-------------------------
+//------------------Fuzzy outputs-------------------------
 Fuzzy_output ir_1_fuzzy;
 Fuzzy_output ir_2_fuzzy;
 Fuzzy_output ultrasonic_fuzzy;
-Fuzzy_output PT_fuzzy;
+Fuzzy_output PT_left_fuzzy;
+Fuzzy_output PT_mid_fuzzy;
+Fuzzy_output PT_right_fuzzy;
 //-----------------------------------------------------
 
 //-----------------Default motor control pins--------------
@@ -72,11 +77,11 @@ const unsigned int MAX_DIST = 23200;
 //--------------------------------------------------------------------------------------------------------------
 
 //---------------------------------------------- SENSOR OBJECTS -------------------------------------------------------------
-Infrared IR_1(A4, 25325, -1.048, 1, 1); //Infrared(pin,A,beta,process_noise,sensor_noise)
-Infrared IR_2(A6, 25610, -1.032, 1, 1);
-Phototransistor PT_Mid(A15,79.992, 156.79, 1, 10); //Phototransistor(pin,A,B,process_noise,sensor_noise)
-Phototransistor PT_Left(A14,79.992, 156.79, 1, 10);
-Phototransistor PT_Right(A13,79.992, 156.79, 1, 10);
+Infrared IR_1(A4, 25325, -1.048); //Infrared(pin,A,beta)
+Infrared IR_2(A6, 25610, -1.032);
+Phototransistor PT_Mid(A14,79.992, 156.79); //Phototransistor(pin,A,B)
+Phototransistor PT_Left(A13,79.992, 156.79);
+Phototransistor PT_Right(A15,79.992, 156.79);
 Ultrasonic Ultrasonic(ECHO_PIN, TRIG_PIN);
 //-----------------------------------------------------------------------------------------
 
@@ -88,9 +93,14 @@ Servo right_font_motor;  // create servo object to control Vex Motor Controller 
 Servo turret_motor;
 //-----------------------------------------------------------------------------------------------------------
 
-//Serial Pointer
-SoftwareSerial hc06(2,3);
+//Serial pointer
+
+#if BLUETOOTH
+SoftwareSerial hc06(2, 3);
+SoftwareSerial *SerialCom;
+#else
 HardwareSerial *SerialCom;
+#endif
 
 int pos = 0;
 void setup(void)
@@ -103,11 +113,13 @@ void setup(void)
   digitalWrite(TRIG_PIN, LOW);
 
   // Setup the Serial port and pointer, the pointer allows switching the debug info through the USB port(Serial) or Bluetooth port(Serial1) with ease.
+#if BLUETOOTH
+  SerialCom = &hc06;
+#else
   SerialCom = &Serial;
+#endif
   SerialCom->begin(115200);
   SerialCom->println("Setup....");
-  hc06.begin(115200);
-
   delay(1000); //settling time
 }
 
@@ -151,11 +163,15 @@ STATE running() {
   //main loop
   if (millis() - previous_millis_1 > SAMPLING_TIME) {
     previous_millis_1 = millis();
-    hc06.println("fuck");
     fuzzify_ir_1();
     fuzzify_ir_2();
     fuzzify_ultrasonic();
+    fuzzify_pt_mid();
     run_inference();
+
+
+    turret_motor.write(80);
+
   }
 
   //debug loop
@@ -172,6 +188,9 @@ STATE running() {
     SerialCom->print(ultrasonic_fuzzy.set + ": ");
     SerialCom->println(ultrasonic_fuzzy.value);
     SerialCom->println();
+    SerialCom->print(PT_mid_fuzzy.set + ": ");
+    SerialCom->println(PT_mid_fuzzy.value);
+    SerialCom->println();
 #endif
 
 #ifndef NO_BATTERY_V_OK
@@ -179,15 +198,6 @@ STATE running() {
 #endif
 
 
-    turret_motor.write(pos);
-    if (pos == 0)
-    {
-      pos = 45;
-    }
-    else
-    {
-      pos = 0;
-    }
   }
 
   return RUNNING;
@@ -207,6 +217,9 @@ STATE stopped() {
     previous_millis = millis();
     SerialCom->println("STOPPED---------");
 
+
+    Ultrasonic.get_dist();
+    SerialCom->println(PT_MID_READING);
 
 
 #ifndef NO_BATTERY_V_OK

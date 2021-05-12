@@ -16,10 +16,42 @@ class Sensor {
     int analogPin;
 };
 
-class Infrared: public Sensor{
+class Kalman {
+  private:
+    double a_priori_est, a_post_est, a_priori_var, a_post_var, kalman_gain;
+
+  protected:
+    double process_noise;
+    double sensor_noise;
+
+    double last_est;
+
   public:
-    Infrared(int pin, double A, double beta) : Sensor(pin) {
-      this->analogPin = pin;
+    Kalman(double process_noise, double sensor_noise) {
+      this->process_noise = process_noise;
+      this->sensor_noise = sensor_noise;
+    }
+
+    double filter(double rawdata) {
+      this->a_priori_est = this->last_est;
+      this->a_priori_var = process_noise;
+
+      this->kalman_gain = a_priori_var / (a_priori_var + sensor_noise);
+      this->a_post_est = a_priori_est + kalman_gain * (rawdata - a_priori_est);
+      this->a_post_var = (1 - kalman_gain) * a_priori_var;
+      return a_post_est;
+    }
+
+    void set_last_est(double prev_est) {
+      this->last_est = prev_est;
+    }
+};
+
+class Infrared: public Sensor, public Kalman {
+  public:
+    Infrared(int pin, double A, double beta, double process_noise, double sensor_noise) : Kalman(process_noise, sensor_noise), Sensor(pin) {
+      this->process_noise = process_noise;
+      this->sensor_noise = sensor_noise;
       this->A = A;
       this->beta = beta;
     }
@@ -28,26 +60,31 @@ class Infrared: public Sensor{
       // short range IR sensor trendline dist = A * val^beta
       double dist, est;
       dist = this->A * pow(this->get_raw_reading(), this->beta);
-      return dist;
+      est = this->filter(dist);
+      this->set_last_est(est);
+      return est;
     }
   private:
     double A;
     double beta;
 };
 
-class Phototransistor: public Sensor {
+class Phototransistor: public Sensor, public Kalman {
   public:
-    Phototransistor(int pin, double A, double B): Sensor(pin) {
-      this->analogPin = pin;
+    Phototransistor(int pin, double A, double B, double process_noise, double sensor_noise): Kalman(process_noise, sensor_noise), Sensor(pin) {
       this-> A = A;
       this-> B = B;
+      this-> process_noise = process_noise;
+      this-> sensor_noise = sensor_noise;
     }
     
     double get_dist() {
       // Converts Phototransistor readings into distance (mm)
       // Looks like an logarithmic relationship: dist = A*ln(raw) - B
       double dist =  this->A * log(this->get_raw_reading() - this->B);
-      return dist;
+      double est = this->filter(dist);
+      this->set_last_est(est);
+      return est;
     }
 
   private:
