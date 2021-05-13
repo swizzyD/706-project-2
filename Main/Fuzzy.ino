@@ -1,7 +1,7 @@
 
 void fuzzify_ir_1() {
   double fuzzy, obstacle, clear;
-  double reading = get_ir_1();
+  double reading = IR_1.get_dist();
   //IR obstacle detection
   if (reading > 100) {
     obstacle = 0;
@@ -30,7 +30,7 @@ void fuzzify_ir_1() {
 
 void fuzzify_ir_2() {
   double fuzzy, obstacle, clear;
-  double reading = get_ir_2();
+  double reading = IR_2.get_dist();
   //IR obstacle detection
   if (reading > 100) {
     obstacle = 0;
@@ -59,7 +59,7 @@ void fuzzify_ir_2() {
 
 void fuzzify_ultrasonic() {
   double fuzzy, obstacle, clear;
-  double reading = get_ultrasonic_distance();
+  double reading = Ultrasonic.get_dist();
   //ultrasonic obstacle detection
   if (reading > 250) {
     obstacle = 0;
@@ -88,7 +88,7 @@ void fuzzify_ultrasonic() {
 
 void fuzzify_pt_left(){
   double fuzzy, light, clear;
-  double reading = PT_LEFT_READING;
+  double reading = PT_Left.get_raw_reading();
   //ultrasonic obstacle detection
   if (reading > 700) {
     light = 0;
@@ -117,7 +117,7 @@ void fuzzify_pt_left(){
 
 void fuzzify_pt_mid(){
   double fuzzy, light, clear;
-  double reading = PT_MID_READING;
+  double reading = PT_Mid.get_raw_reading();
   //ultrasonic obstacle detection
   if (reading > 800) {
     light = 0;
@@ -139,6 +139,37 @@ void fuzzify_pt_mid(){
   else {
     PT_mid_fuzzy.set = "clear";
     PT_mid_fuzzy.value = clear;
+  }
+}
+
+//------------------------------------------------------
+
+//-----------------------------------------------------
+
+void fuzzify_pt_right(){
+  double fuzzy, light, clear;
+  double reading = PT_Right.get_raw_reading();
+  //ultrasonic obstacle detection
+  if (reading > 700) {
+    light = 0;
+    clear = 1;
+  }
+  else if (reading < 50) {
+    light = 1;
+    clear = 0;
+  }
+  else {
+    clear = 1 - (reading - 50) / 650;
+    light = 1 - clear;
+  }
+
+  if (light > clear) {
+    PT_right_fuzzy.set = "light";
+    PT_right_fuzzy.value = light;
+  }
+  else {
+    PT_right_fuzzy.set = "clear";
+    PT_right_fuzzy.value = clear;
   }
 }
 

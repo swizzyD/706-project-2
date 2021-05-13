@@ -15,6 +15,7 @@
 #include <Servo.h>  //Need for Servo pulse output
 #include "PID_class.h"
 #include "Fuzzy_Output_Struct.h"
+#include "Sensors.h"
 
 
 //#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
@@ -73,6 +74,15 @@ const int ECHO_PIN = 49;
 // Hint:If you decrease to this the ranging sensor but the timeout is short, you may not need to read up to 4meters.
 const unsigned int MAX_DIST = 23200;
 //--------------------------------------------------------------------------------------------------------------
+
+//---------------------------------------------- SENSOR OBJECTS -------------------------------------------------------------
+Infrared IR_1(A4, 25325, -1.048); //Infrared(pin,A,beta)
+Infrared IR_2(A6, 25610, -1.032);
+Phototransistor PT_Mid(A14,79.992, 156.79); //Phototransistor(pin,A,B)
+Phototransistor PT_Left(A13,79.992, 156.79);
+Phototransistor PT_Right(A15,79.992, 156.79);
+Ultrasonic Ultrasonic(ECHO_PIN, TRIG_PIN);
+//-----------------------------------------------------------------------------------------
 
 //----------------------Servo Objects---------------------------------------------------------------------------
 Servo left_font_motor;  // create servo object to control Vex Motor Controller 29
