@@ -20,7 +20,7 @@ PID::PID(float Kp, float Ki, float Kd, int limMin, int limMax){
   this->Kp = Kp;
   this->Ki = Ki;
   this->Kd = Kd;
-  this->Ts = 20;    //sampling time 20ms
+  this->Ts = 50;    //sampling time 20ms
   this->tau = 64;  // 10Hz cutoff
   this->limMin = limMin;
   this->limMax = limMax;

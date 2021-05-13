@@ -15,7 +15,7 @@
 #include <Servo.h>  //Need for Servo pulse output
 #include "PID_class.h"
 #include "Fuzzy_Output_Struct.h"
-#include "Sensors.h"
+#include "Sensors_class.h"
 
 
 //#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
@@ -57,6 +57,7 @@ Fuzzy_output ultrasonic_fuzzy;
 Fuzzy_output PT_left_fuzzy;
 Fuzzy_output PT_mid_fuzzy;
 Fuzzy_output PT_right_fuzzy;
+Fuzzy_output PT_top_fuzzy;
 //-----------------------------------------------------
 
 //-----------------Default motor control pins--------------
@@ -75,12 +76,17 @@ const int ECHO_PIN = 49;
 const unsigned int MAX_DIST = 23200;
 //--------------------------------------------------------------------------------------------------------------
 
+//-----------------------------------PID objects------------------
+PID PID_mid(0.3f, 0.0f, 0.0f, -500, 500);
+
+
 //---------------------------------------------- SENSOR OBJECTS -------------------------------------------------------------
 Infrared IR_1(A4, 25325, -1.048); //Infrared(pin,A,beta)
 Infrared IR_2(A6, 25610, -1.032);
-Phototransistor PT_Mid(A14,79.992, 156.79); //Phototransistor(pin,A,B)
-Phototransistor PT_Left(A13,79.992, 156.79);
-Phototransistor PT_Right(A15,79.992, 156.79);
+Phototransistor PT_Mid(A14, 79.992, 156.79); //Phototransistor(pin,A,B)
+Phototransistor PT_Left(A13, 79.992, 156.79);
+Phototransistor PT_Right(A15, 79.992, 156.79);
+Phototransistor PT_Top(A12, 79.992, 156.79);
 Ultrasonic Ultrasonic(ECHO_PIN, TRIG_PIN);
 //-----------------------------------------------------------------------------------------
 
@@ -166,11 +172,11 @@ STATE running() {
     fuzzify_ir_2();
     fuzzify_ultrasonic();
     fuzzify_pt_mid();
+    fuzzify_pt_left();
+    fuzzify_pt_right();
+    fuzzify_pt_top();
     run_inference();
-
-
     turret_motor.write(80);
-
   }
 
   //debug loop
@@ -187,8 +193,21 @@ STATE running() {
     SerialCom->print(ultrasonic_fuzzy.set + ": ");
     SerialCom->println(ultrasonic_fuzzy.value);
     SerialCom->println();
+    SerialCom->print("mid_fuzzy = ");
     SerialCom->print(PT_mid_fuzzy.set + ": ");
     SerialCom->println(PT_mid_fuzzy.value);
+    SerialCom->println();
+    SerialCom->print("left_fuzzy = ");
+    SerialCom->print(PT_left_fuzzy.set + ": ");
+    SerialCom->println(PT_left_fuzzy.value);
+    SerialCom->println();
+    SerialCom->print("right_fuzzy = ");
+    SerialCom->print(PT_right_fuzzy.set + ": ");
+    SerialCom->println(PT_right_fuzzy.value);
+    SerialCom->println();
+    SerialCom->print("top_fuzzy = ");
+    SerialCom->print(PT_top_fuzzy.set + ": ");
+    SerialCom->println(PT_top_fuzzy.value);
     SerialCom->println();
 #endif
 
@@ -216,9 +235,20 @@ STATE stopped() {
     previous_millis = millis();
     SerialCom->println("STOPPED---------");
 
-    ir_reading();
-    ultrasonic_reading();
-    SerialCom->println(PT_MID_READING);
+    //    int mid = PID_mid.PID_update(20, PT_Mid.get_raw_reading());
+    //    int left_error = PT_Left.get_raw_reading() - 900;
+    //    int right_error = PT_Right.get_raw_reading() - 800;
+    SerialCom->print("left = ");
+    SerialCom->println(PT_Left.get_raw_reading());
+    SerialCom->print("right = ");
+    SerialCom->println(PT_Right.get_raw_reading());
+    SerialCom->print("mid = ");
+    SerialCom->println(PT_Mid.get_raw_reading());
+    SerialCom->print("top = ");
+    SerialCom->println(PT_Top.get_raw_reading());
+
+    //      SerialCom->println(PT_Mid.get_raw_reading() + PT_Left.get_raw_reading()+PT_Right.get_raw_reading());
+
 
 #ifndef NO_BATTERY_V_OK
     //500ms timed if statement to check lipo and output speed settings
