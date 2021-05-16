@@ -43,12 +43,24 @@ double get_ir_2()
   return dist;
 }
 
+// long range
+double get_ir_3()
+{
+  // short range IR sensor trendline dist = 18126 * val^-0.963
+  double A = 25610,   beta = -1.032;
+  double dist;
+  dist = A * pow(IR_3_READING, beta);
+  return dist;
+}
+
 void ir_reading()
 {
   SerialCom->print("IR_1_reading:");
   SerialCom->println(IR_1_READING);
   SerialCom->print("IR_2_reading:");
   SerialCom->println(IR_2_READING);
+  SerialCom->print("IR_3_reading:");
+  SerialCom->println(IR_3_READING);
 }
 
 void ultrasonic_reading()

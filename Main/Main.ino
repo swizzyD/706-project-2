@@ -15,6 +15,7 @@
 #include <Servo.h>  //Need for Servo pulse output
 #include "PID_class.h"
 #include "Fuzzy_Output_Struct.h"
+#include "Sensors_class.h"
 
 
 //#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
@@ -24,6 +25,8 @@
 #define GYRO_READING analogRead(A3)
 #define IR_1_READING analogRead(A4)
 #define IR_2_READING analogRead(A6)
+#define IR_3_READING analogRead(A7)
+#define PT_TOPREADING analogRead(A12)
 #define PT_LEFT_READING analogRead(A13)
 #define PT_MID_READING analogRead(A14)
 #define PT_RIGHT_READING analogRead(A15)
@@ -52,10 +55,12 @@ static float currentAngle = 0;         // current angle calculated by angular ve
 //------------------Fuzzy outputs-------------------------
 Fuzzy_output ir_1_fuzzy;
 Fuzzy_output ir_2_fuzzy;
+Fuzzy_output ir_3_fuzzy;
 Fuzzy_output ultrasonic_fuzzy;
 Fuzzy_output PT_left_fuzzy;
 Fuzzy_output PT_mid_fuzzy;
 Fuzzy_output PT_right_fuzzy;
+Fuzzy_output PT_top_fuzzy;
 //-----------------------------------------------------
 
 //-----------------Default motor control pins--------------
@@ -65,6 +70,11 @@ const byte right_rear = 50;
 const byte right_front = 51;
 //---------------------------------------------------------------------------------------------------------
 
+//---------------Fan pins----------
+boolean toggle = false;
+int FAN_PIN = 4;
+//------------------------------------
+
 //-----------Ultrasonic pins--------------------------------------------------------
 const int TRIG_PIN = 48;
 const int ECHO_PIN = 49;
@@ -73,6 +83,21 @@ const int ECHO_PIN = 49;
 // Hint:If you decrease to this the ranging sensor but the timeout is short, you may not need to read up to 4meters.
 const unsigned int MAX_DIST = 23200;
 //--------------------------------------------------------------------------------------------------------------
+
+//-----------------------------------PID objects------------------
+PID PID_mid(0.3f, 0.0f, 0.0f, -500, 500);
+
+
+//---------------------------------------------- SENSOR OBJECTS -------------------------------------------------------------
+Infrared IR_1(A4, 25325, -1.048); //Infrared(pin,A,beta)
+Infrared IR_2(A6, 25610, -1.032);
+Infrared IR_3(A7, 2000000, -1.795);
+Phototransistor PT_Mid(A14, 79.992, 156.79); //Phototransistor(pin,A,B)
+Phototransistor PT_Left(A13, 79.992, 156.79);
+Phototransistor PT_Right(A15, 79.992, 156.79);
+Phototransistor PT_Top(A12, 79.992, 156.79);
+Ultrasonic Ultrasonic(ECHO_PIN, TRIG_PIN);
+//-----------------------------------------------------------------------------------------
 
 //----------------------Servo Objects---------------------------------------------------------------------------
 Servo left_font_motor;  // create servo object to control Vex Motor Controller 29
@@ -100,6 +125,10 @@ void setup(void)
   // The Trigger pin will tell the sensor to range find
   pinMode(TRIG_PIN, OUTPUT);
   digitalWrite(TRIG_PIN, LOW);
+  
+  //Trigger pin for fan
+  pinMode(FAN_PIN, OUTPUT);
+  digitalWrite(FAN_PIN, OUTPUT);
 
   // Setup the Serial port and pointer, the pointer allows switching the debug info through the USB port(Serial) or Bluetooth port(Serial1) with ease.
 #if BLUETOOTH
@@ -154,13 +183,16 @@ STATE running() {
     previous_millis_1 = millis();
     fuzzify_ir_1();
     fuzzify_ir_2();
+    fuzzify_ir_3();
     fuzzify_ultrasonic();
     fuzzify_pt_mid();
+    fuzzify_pt_left();
+    fuzzify_pt_right();
+    fuzzify_pt_top();
     run_inference();
-
-
+    fan_control();
+    
     turret_motor.write(80);
-
   }
 
   //debug loop
@@ -173,12 +205,28 @@ STATE running() {
     SerialCom->print("ir_2_fuzzy = ");
     SerialCom->print(ir_2_fuzzy.set + ": ");
     SerialCom->println(ir_2_fuzzy.value);
+    SerialCom->print("ir_3_fuzzy = ");
+    SerialCom->print(ir_3_fuzzy.set + ": ");
+    SerialCom->println(ir_3_fuzzy.value);
     SerialCom->print("ultrasonic_fuzzy = ");
     SerialCom->print(ultrasonic_fuzzy.set + ": ");
     SerialCom->println(ultrasonic_fuzzy.value);
     SerialCom->println();
+    SerialCom->print("mid_fuzzy = ");
     SerialCom->print(PT_mid_fuzzy.set + ": ");
     SerialCom->println(PT_mid_fuzzy.value);
+    SerialCom->println();
+    SerialCom->print("left_fuzzy = ");
+    SerialCom->print(PT_left_fuzzy.set + ": ");
+    SerialCom->println(PT_left_fuzzy.value);
+    SerialCom->println();
+    SerialCom->print("right_fuzzy = ");
+    SerialCom->print(PT_right_fuzzy.set + ": ");
+    SerialCom->println(PT_right_fuzzy.value);
+    SerialCom->println();
+    SerialCom->print("top_fuzzy = ");
+    SerialCom->print(PT_top_fuzzy.set + ": ");
+    SerialCom->println(PT_top_fuzzy.value);
     SerialCom->println();
 #endif
 
@@ -206,9 +254,25 @@ STATE stopped() {
     previous_millis = millis();
     SerialCom->println("STOPPED---------");
 
-    ir_reading();
-    ultrasonic_reading();
-    SerialCom->println(PT_MID_READING);
+    //    int mid = PID_mid.PID_update(20, PT_Mid.get_raw_reading());
+    //    int left_error = PT_Left.get_raw_reading() - 900;
+    //    int right_error = PT_Right.get_raw_reading() - 800;
+    SerialCom->print("left = ");
+    SerialCom->println(PT_Left.get_raw_reading());
+    SerialCom->print("right = ");
+    SerialCom->println(PT_Right.get_raw_reading());
+    SerialCom->print("mid = ");
+    SerialCom->println(PT_Mid.get_raw_reading());
+    SerialCom->print("top = ");
+    SerialCom->println(PT_Top.get_raw_reading());
+   
+    SerialCom->print("ir_3_fuzzy = ");
+    SerialCom->print(IR_3.get_dist());
+
+
+
+    //      SerialCom->println(PT_Mid.get_raw_reading() + PT_Left.get_raw_reading()+PT_Right.get_raw_reading());
+
 
 #ifndef NO_BATTERY_V_OK
     //500ms timed if statement to check lipo and output speed settings
