@@ -106,8 +106,9 @@ Servo left_font_motor;  // create servo object to control Vex Motor Controller 2
 Servo left_rear_motor;  // create servo object to control Vex Motor Controller 29
 Servo right_rear_motor;  // create servo object to control Vex Motor Controller 29
 Servo right_font_motor;  // create servo object to control Vex Motor Controller 29
-Servo turret_motor;
-//Turret turret_motor(25);
+//Servo turret_motor;
+Turret turret_motor(25);
+PID turret_pid(1,0,0
 //-----------------------------------------------------------------------------------------------------------
 
 //Serial pointer
@@ -123,7 +124,7 @@ int pos = 0;
 void setup(void)
 {
   
-  turret_motor.attach(11);
+  turret_motor.Attach(11);
   pinMode(LED_BUILTIN, OUTPUT);
 
   // The Trigger pin will tell the sensor to range find
@@ -171,6 +172,7 @@ STATE initialising() {
   SerialCom->println("Enabling Motors...");
   enable_motors();
 //  gyro_setup();
+  turret_motor.Write(80);
   return RUNNING;
 }
 
@@ -195,7 +197,10 @@ STATE running() {
     fuzzify_pt_top();
     run_inference();
     fan_control();
-//    turret_motor.Track(PT_mid_fuzzy.set,PT_right_fuzzy.value,PT_left_fuzzy.value);
+    turret_motor.Track(PT_mid_fuzzy.set,PT_right_fuzzy.set,PT_left_fuzzy.set);
+    Serial.print(PT_left_fuzzy.set);
+    Serial.print(", ");
+    Serial.println(PT_right_fuzzy.set);
 
 //    turret_motor.Write(80);
   }
@@ -273,7 +278,6 @@ STATE stopped() {
    
     SerialCom->print("ir_3_fuzzy = ");
     SerialCom->print(IR_3.get_dist());
-
 
 
     //      SerialCom->println(PT_Mid.get_raw_reading() + PT_Left.get_raw_reading()+PT_Right.get_raw_reading());
