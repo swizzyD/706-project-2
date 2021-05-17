@@ -179,7 +179,7 @@ void fuzzify_pt_top() {
   double fuzzy, light, clear;
   double reading = PT_Top.get_raw_reading();
   //ultrasonic obstacle detection
-  if (reading < 300) {
+  if (reading < 700) {
     light = 1;
     clear = 0;
   }
@@ -263,21 +263,21 @@ void run_inference() {
     forward(150);
   }
 
-  else if (PT_left_fuzzy.set == "light") {
+  else if (PT_left_fuzzy.set == "light" && ultrasonic_fuzzy.set == "clear") {
     ccw(PT_left_fuzzy.value * 150);
     dir = "ccw";
   }
-  else if (PT_right_fuzzy.set == "light") {
+  else if (PT_right_fuzzy.set == "light" && ultrasonic_fuzzy.set == "clear") {
     cw(PT_right_fuzzy.value * 150);
     dir = "cw";
   }
 
   else {
     if (dir == "ccw") {
-      ccw(150);
+      ccw(120);
     }
     else {
-      cw(150);
+      cw(120);
     }
   }
 

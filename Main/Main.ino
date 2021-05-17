@@ -16,6 +16,7 @@
 #include "PID_class.h"
 #include "Fuzzy_Output_Struct.h"
 #include "Sensors_class.h"
+#include "Turret_class.h"
 
 
 
@@ -106,6 +107,7 @@ Servo left_rear_motor;  // create servo object to control Vex Motor Controller 2
 Servo right_rear_motor;  // create servo object to control Vex Motor Controller 29
 Servo right_font_motor;  // create servo object to control Vex Motor Controller 29
 Servo turret_motor;
+//Turret turret_motor(25);
 //-----------------------------------------------------------------------------------------------------------
 
 //Serial pointer
@@ -120,6 +122,7 @@ HardwareSerial *SerialCom;
 int pos = 0;
 void setup(void)
 {
+  
   turret_motor.attach(11);
   pinMode(LED_BUILTIN, OUTPUT);
 
@@ -129,7 +132,7 @@ void setup(void)
   
   //Trigger pin for fan
   pinMode(FAN_PIN, OUTPUT);
-  digitalWrite(FAN_PIN, OUTPUT);
+  digitalWrite(FAN_PIN, LOW);
 
   // Setup the Serial port and pointer, the pointer allows switching the debug info through the USB port(Serial) or Bluetooth port(Serial1) with ease.
 #if BLUETOOTH
@@ -192,8 +195,9 @@ STATE running() {
     fuzzify_pt_top();
     run_inference();
     fan_control();
-    
-    turret_motor.write(80);
+//    turret_motor.Track(PT_mid_fuzzy.set,PT_right_fuzzy.value,PT_left_fuzzy.value);
+
+//    turret_motor.Write(80);
   }
 
   //debug loop
@@ -273,7 +277,7 @@ STATE stopped() {
 
 
     //      SerialCom->println(PT_Mid.get_raw_reading() + PT_Left.get_raw_reading()+PT_Right.get_raw_reading());
-
+    
 
 
 #ifndef NO_BATTERY_V_OK
