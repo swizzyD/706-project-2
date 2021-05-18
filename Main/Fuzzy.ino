@@ -179,7 +179,7 @@ void fuzzify_pt_top() {
   double fuzzy, light, clear;
   double reading = PT_Top.get_raw_reading();
   //ultrasonic obstacle detection
-  if (reading < 700) {
+  if (reading < 300) {
     light = 1;
     clear = 0;
   }
