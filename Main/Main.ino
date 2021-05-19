@@ -108,7 +108,7 @@ Servo right_rear_motor;  // create servo object to control Vex Motor Controller 
 Servo right_font_motor;  // create servo object to control Vex Motor Controller 29
 //Servo turret_motor;
 Turret turret_motor(25);
-PID turret_pid(1,0,0
+//PID turret_pid(1,0,0
 //-----------------------------------------------------------------------------------------------------------
 
 //Serial pointer

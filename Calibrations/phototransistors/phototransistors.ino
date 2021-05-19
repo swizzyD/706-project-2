@@ -11,13 +11,24 @@ void loop() {
   // put your main code here, to run repeatedly:
   int val;  
   float temp, est;              
-  val=analogRead(A15);      //Read the analog port 0 and store the value in val
-  temp = PTDist(val);
-  Serial.print(val);
-  est = Kalman(temp, last_est);
-  Serial.print(" , ");
-  Serial.println(est);
-  last_est = est;
+//  val=analogRead(A15);      //Read the analog port 0 and store the value in val
+//  temp = PTDist(val);
+//  Serial.print(val);
+//  est = Kalman(temp, last_est);
+//  Serial.print(" , ");
+//  Serial.println(est);
+//  last_est = est;
+
+  Serial.print(analogRead(A12));
+  Serial.print(", ");
+  Serial.print(analogRead(A13));
+  Serial.print(", ");
+  Serial.print(analogRead(A14));
+  Serial.print(", ");
+  Serial.println(analogRead(A15));
+
+  
+ 
   
 }
 
