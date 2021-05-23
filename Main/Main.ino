@@ -34,7 +34,7 @@
 #define PT_RIGHT_READING analogRead(A15)
 
 #define GYRO_TARGET_ANGLE 90
-#define ULTRASONIC_MOVE_THRESH 100
+#define ULTRASONIC_MOVE_THRESH 50
 
 static int count = 0;
 
@@ -197,10 +197,7 @@ STATE running() {
     fuzzify_pt_top();
     run_inference();
     fan_control();
-    turret_motor.Track(PT_mid_fuzzy.set,PT_right_fuzzy.set,PT_left_fuzzy.set);
-    Serial.print(PT_left_fuzzy.set);
-    Serial.print(", ");
-    Serial.println(PT_right_fuzzy.set);
+    //turret_motor.Track(PT_mid_fuzzy.set,PT_right_fuzzy.set,PT_left_fuzzy.set);
 
 //    turret_motor.Write(80);
   }
@@ -208,6 +205,14 @@ STATE running() {
   //debug loop
   if (millis() - previous_millis_2 > 500) {
     previous_millis_2 = millis();
+    fuzzify_ir_1();
+    fuzzify_ir_2();
+    fuzzify_ir_3();
+    fuzzify_ultrasonic();
+    fuzzify_pt_mid();
+    fuzzify_pt_left();
+    fuzzify_pt_right();
+    fuzzify_pt_top();
 #if DISP_READINGS
     SerialCom->print("ir_1_fuzzy = ");
     SerialCom->print(ir_1_fuzzy.set + ": ");
@@ -237,6 +242,10 @@ STATE running() {
     SerialCom->print("top_fuzzy = ");
     SerialCom->print(PT_top_fuzzy.set + ": ");
     SerialCom->println(PT_top_fuzzy.value);
+    SerialCom->println();
+    SerialCom->print("ultra_fuzzy = ");
+    SerialCom->print(ultrasonic_fuzzy.set + ": ");
+    SerialCom->println(ultrasonic_fuzzy.value);
     SerialCom->println();
 #endif
 
@@ -279,6 +288,8 @@ STATE stopped() {
     SerialCom->print("ir_3_fuzzy = ");
     SerialCom->print(IR_3.get_dist());
 
+    SerialCom->print("ultrasonic = ");
+    SerialCom->println(Ultrasonic.get_dist());
 
     //      SerialCom->println(PT_Mid.get_raw_reading() + PT_Left.get_raw_reading()+PT_Right.get_raw_reading());
     

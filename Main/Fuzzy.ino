@@ -96,12 +96,14 @@ void fuzzify_ultrasonic() {
     obstacle = 0;
     clear = 1;
   }
-  else if (reading < 150) {
+//  else if (reading < 150) {
+  else if (reading < 70) {
     obstacle = 1;
     clear = 0;
   }
   else {
-    clear = (reading - 150) / 100;
+//    clear = (reading - 150) / 100;
+    clear = (reading - 70) / 180;
     obstacle = 1 - clear;
   }
 
@@ -239,9 +241,11 @@ void fuzzify_pt_right() {
 void run_inference() {
   //obstacle avoidance
   if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear" && ir_3_fuzzy.set == "obstacle") {
+    
     stop();
   }
   else if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear" && ir_3_fuzzy.set == "clear") {
+    turret_motor.Write(80); 
     toggle = false;
     reverse(ultrasonic_fuzzy.value * 150);
   }
@@ -251,20 +255,25 @@ void run_inference() {
   else if (ir_2_fuzzy.set == "obstacle") {
     strafe_left(ir_2_fuzzy.value * 150);
   }
-  else if (ir_1_fuzzy.set == "obstacle" && ultrasonic_fuzzy.set == "obstacle") {
+  else if (ir_1_fuzzy.set == "obstacle") {
     cw(ir_1_fuzzy.value * 150);
   }
-  else if (ir_2_fuzzy.set == "obstacle" && ultrasonic_fuzzy.set == "obstacle") {
+  else if (ir_2_fuzzy.set == "obstacle") {
     ccw(ir_2_fuzzy.value * 150);
   }
 
   //light detect
-  else if (PT_top_fuzzy.set == "light" && (PT_mid_fuzzy.set == "light" || PT_left_fuzzy.set == "light" || PT_right_fuzzy.set == "light")) {
-    stop();
+  else if (PT_top_fuzzy.set == "light" && (PT_mid_fuzzy.set == "light" || PT_left_fuzzy.set == "light" || PT_right_fuzzy.set == "light")&& ultrasonic_fuzzy.set == "obstacle") {
+    //stop();
+    turret_motor.Track(PT_mid_fuzzy.set,PT_right_fuzzy.set,PT_left_fuzzy.set);
+    forward(300*(1 - ultrasonic_fuzzy.value));
     toggle = true;
   }
-  else if (PT_mid_fuzzy.set == "light" && PT_top_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "obstacle" ) {
+  else if (PT_mid_fuzzy.set == "light" && PT_top_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "obstacle") {
     strafe_left(ultrasonic_fuzzy.value * 150);
+  }
+  else if (PT_mid_fuzzy.set == "light" && PT_top_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "obstacle" && ir_1_fuzzy.set == "obstacle") {
+    strafe_right(ultrasonic_fuzzy.value * 150);
   }
   else if (PT_mid_fuzzy.set == "light" && PT_top_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "clear") {
     forward(150);

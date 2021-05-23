@@ -47,7 +47,6 @@ class Turret
     void Track(String mid, String right_val, String left_val)
     {
       if (mid == "light") {
-        Serial.println("bitch");
         servo.write(this->pos);
       }
       else if (right_val == "light" && left_val == "clear") {
@@ -58,6 +57,7 @@ class Turret
         servo.write(this->pos + 2);
         this->pos = this->pos + 2;
       }
+
       //
       //    else if (right_val < left_val){
       //      servo.write(this->pos-2);
