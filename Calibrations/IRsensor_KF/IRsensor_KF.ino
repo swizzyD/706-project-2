@@ -10,8 +10,8 @@ void setup() {
 }
 
 void loop() {
-  int val;                // Integer variable for analogue input
-  double temp, est;       // Variables for raw and fitered distance measurement
+  int val1, val2;                // Integer variable for analogue input
+  double temp1, temp2, est1, est2;       // Variables for raw and fitered distance measurement
   val1=analogRead(A4);      //Read the analog port 0 and store the value in val
   val2=analogRead(A6);
   temp1 = DistanceSide1(val1);  //Convert to mm distance based on sensor calibration
@@ -26,9 +26,9 @@ void loop() {
   est1 = Kalman(temp1, last_est1);  //Filtered estimated measurement
   est2 = Kalman(temp2, last_est2);  //Filtered estimated measurement
   //Serial.println(est);
-  Serial.println(est1);
+  Serial.print(est1);
   Serial.print(" , ");
-  Serial.print(est2);
+  Serial.println(est2);
   last_est1 = est1;         // store estimate as previous measurement for next cycle
   last_est2 = est2;
   delay(100);            //Wait one second 
