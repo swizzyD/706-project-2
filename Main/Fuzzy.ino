@@ -241,24 +241,24 @@ void fuzzify_pt_right() {
 void run_inference() {
   //obstacle avoidance
   if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear" && ir_3_fuzzy.set == "obstacle") {
-    
+    //cw(150);
     stop();
   }
-  else if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear" && ir_3_fuzzy.set == "clear") {
+  else if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear" && ir_3_fuzzy.set == "clear" && PT_top_fuzzy.set == "clear") {
     turret_motor.Write(80); 
     toggle = false;
     reverse(ultrasonic_fuzzy.value * 150);
   }
-  else if (ir_1_fuzzy.set == "obstacle") {
+  else if (ultrasonic_fuzzy.set == "clear" && ir_1_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "clear") {
     strafe_right(ir_1_fuzzy.value * 150);
   }
-  else if (ir_2_fuzzy.set == "obstacle") {
+  else if (ultrasonic_fuzzy.set == "clear" && ir_1_fuzzy.set == "clear" && ir_2_fuzzy.set == "obstacle") {
     strafe_left(ir_2_fuzzy.value * 150);
   }
-  else if (ir_1_fuzzy.set == "obstacle") {
+  else if (ultrasonic_fuzzy.set == "obstacle" && ir_1_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "clear") {
     cw(ir_1_fuzzy.value * 150);
   }
-  else if (ir_2_fuzzy.set == "obstacle") {
+  else if (ultrasonic_fuzzy.set == "obstacle" && ir_1_fuzzy.set == "clear" && ir_2_fuzzy.set == "obstacle") {
     ccw(ir_2_fuzzy.value * 150);
   }
 
