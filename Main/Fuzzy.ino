@@ -250,10 +250,10 @@ void run_inference() {
     reverse(ultrasonic_fuzzy.value * 150);
   }
   else if (ultrasonic_fuzzy.set == "clear" && ir_1_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "clear") {
-    strafe_right(ir_1_fuzzy.value * 150);
+    strafe_right(ir_1_fuzzy.value * 250);
   }
   else if (ultrasonic_fuzzy.set == "clear" && ir_1_fuzzy.set == "clear" && ir_2_fuzzy.set == "obstacle") {
-    strafe_left(ir_2_fuzzy.value * 150);
+    strafe_left(ir_2_fuzzy.value * 250);
   }
   else if (ultrasonic_fuzzy.set == "obstacle" && ir_1_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "clear") {
     cw(ir_1_fuzzy.value * 150);
@@ -270,10 +270,10 @@ void run_inference() {
     toggle = true;
   }
   else if (PT_mid_fuzzy.set == "light" && PT_top_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "obstacle") {
-    strafe_left(ultrasonic_fuzzy.value * 150);
+    strafe_left(ultrasonic_fuzzy.value * 250);
   }
   else if (PT_mid_fuzzy.set == "light" && PT_top_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "obstacle" && ir_1_fuzzy.set == "obstacle") {
-    strafe_right(ultrasonic_fuzzy.value * 150);
+    strafe_right(ultrasonic_fuzzy.value * 250);
   }
   else if (PT_mid_fuzzy.set == "light" && PT_top_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "clear") {
     forward(150);
@@ -289,11 +289,12 @@ void run_inference() {
   }
 
   else {
+    SerialCom->println("FUCKED UP");
     if (dir == "ccw") {
-      ccw(120);
+      ccw(300);
     }
     else {
-      cw(120);
+      cw(300);
     }
   }
 
