@@ -96,13 +96,12 @@ void fuzzify_ultrasonic() {
     obstacle = 0;
     clear = 1;
   }
-//  else if (reading < 150) {
   else if (reading < 150) {
+
     obstacle = 1;
     clear = 0;
   }
   else {
-//    clear = (reading - 150) / 100;
     clear = (reading - 100) / 150;
     obstacle = 1 - clear;
   }
@@ -154,7 +153,7 @@ void fuzzify_pt_mid() {
   double fuzzy, light, clear;
   double reading = PT_Mid.get_raw_reading();
   //ultrasonic obstacle detection
-  if (reading > 800) {
+  if (reading > 900) {
     light = 0;
     clear = 1;
   }
@@ -164,7 +163,6 @@ void fuzzify_pt_mid() {
     clear = 0;
   }
   else {
-//    clear = (reading - 700) / 200;
     clear = (reading - 80) / 720;
     light = 1 - clear;
   }
@@ -184,7 +182,6 @@ void fuzzify_pt_mid() {
 void fuzzify_pt_top() {
   double fuzzy, light, clear;
   double reading = PT_Top.get_raw_reading();
-  //ultrasonic obstacle detection
   if (reading < 40) {
     light = 1;
     clear = 0;
@@ -204,24 +201,18 @@ void fuzzify_pt_top() {
   }
 }
 
-//------------------------------------------------------
-
 void fuzzify_pt_right() {
   double fuzzy, light, clear;
   double reading = PT_Right.get_raw_reading();
-  //ultrasonic obstacle detection
-//  if (reading > 600) {
     if (reading > 600){
     light = 0;
     clear = 1;
   }
-//  else if (reading < 400) {
     else if (reading < 50){
     light = 1;
     clear = 0;
   }
   else {
-//    clear = (reading - 50) / 550;
     clear = (reading - 50) / 550;
     light = 1 - clear;
   }
@@ -289,6 +280,7 @@ void run_inference() {
   else if (PT_mid_fuzzy.set == "light" && PT_top_fuzzy.set == "clear" && ultrasonic_fuzzy.set == "obstacle" && ir_1_fuzzy.set == "clear"  && ir_2_fuzzy.set == "clear") {
     strafe_left(250);
   }
+
   else if (PT_left_fuzzy.set == "light" && ultrasonic_fuzzy.set == "clear") {
     ccw(PT_left_fuzzy.value * 150);
     dir = "ccw";
