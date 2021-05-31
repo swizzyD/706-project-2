@@ -77,6 +77,15 @@ void strafe_right(double speed_val)
   right_font_motor.writeMicroseconds(1500 + speed_val);
 }
 
+void fan_control()
+{
+  if (toggle) {
+    digitalWrite(FAN_PIN, HIGH);
+  } else if (!toggle) {
+    digitalWrite(FAN_PIN, LOW);
+  }
+}
+
 int integrate(int val) {
   static long integrator = 0;
   integrator += val;
