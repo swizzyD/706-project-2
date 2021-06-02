@@ -184,6 +184,9 @@ STATE running() {
 
   //main loop
   if (millis() - previous_millis_1 > SAMPLING_TIME) {
+    if (count == 2){
+      return STOPPED;
+    }
     previous_millis_1 = millis();
     fuzzify_ir_1();
     fuzzify_ir_2();
@@ -196,7 +199,7 @@ STATE running() {
     run_inference();
     fan_control();
     //turret_motor.Track(PT_mid_fuzzy.set,PT_right_fuzzy.set,PT_left_fuzzy.set);
-
+    SerialCom->println(count);
 //    turret_motor.Write(80);
   }
 
