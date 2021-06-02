@@ -8,6 +8,7 @@ class Turret
     int prev_raw = 50;
     int pos_correction = 5;
 
+
   public:
     Turret(int interval)
     {

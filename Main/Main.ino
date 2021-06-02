@@ -18,8 +18,6 @@
 #include "Sensors_class.h"
 #include "Turret_class.h"
 
-
-
 #define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
 #define DISP_READINGS 1
 #define BLUETOOTH 0
