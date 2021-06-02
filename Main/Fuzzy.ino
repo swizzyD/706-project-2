@@ -237,6 +237,9 @@ void run_inference() {
   }
   else if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear" && ir_3_fuzzy.set == "clear" && PT_top_fuzzy.set == "clear") {
     turret_motor.Write(80); 
+    if (toggle == true){
+      count++;
+    }
     toggle = false;
     reverse(ultrasonic_fuzzy.value * 150);
     SerialCom->println("front obstacle");
@@ -300,4 +303,9 @@ void run_inference() {
     }
   }
 
+}
+void lillian(){
+  if (count == 2){
+    stop();
+  }
 }
