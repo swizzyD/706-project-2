@@ -231,11 +231,8 @@ void fuzzify_pt_right() {
 
 void run_inference() {
   //obstacle avoidance
-  if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear" && ir_3_fuzzy.set == "obstacle") {
-    cw(150);
-    SerialCom->println("front and back obstacle");
-  }
-  else if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear" && ir_3_fuzzy.set == "clear" && PT_top_fuzzy.set == "clear") {
+ 
+  if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear"  && PT_top_fuzzy.set == "clear") {
     turret_motor.Write(80); 
     if (toggle == true){
       count++;
