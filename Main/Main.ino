@@ -18,7 +18,7 @@
 #include "Sensors_class.h"
 #include "Turret_class.h"
 
-#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
+//#define NO_BATTERY_V_OK //Uncomment of BATTERY_V_OK if you do not care about battery damage.
 #define DISP_READINGS 1
 #define BLUETOOTH 0
 #define SAMPLING_TIME 50 //ms , operate at 20Hz
@@ -184,8 +184,11 @@ STATE running() {
 
   //main loop
   if (millis() - previous_millis_1 > SAMPLING_TIME) {
-    if (count == 2){
-      return STOPPED;
+    if (count >= 2){
+      stop();
+      while(true){
+        ;;
+      }
     }
     previous_millis_1 = millis();
     fuzzify_ir_1();
@@ -199,7 +202,8 @@ STATE running() {
     run_inference();
     fan_control();
     //turret_motor.Track(PT_mid_fuzzy.set,PT_right_fuzzy.set,PT_left_fuzzy.set);
-    SerialCom->println(count);
+//    SerialCom->println("count = ");
+//    SerialCom->println(count);
 //    turret_motor.Write(80);
   }
 

@@ -46,11 +46,11 @@ float noteDurations[] = {       //duration of the notes
 4,4,4,4,4
 };
 
-int speed=65;  //higher value, slower notes
+int speed=60;  //higher value, slower notes
 void setup() {
 
 Serial.begin(9600);
-
+delay(1200);
 }
 
 void loop() {

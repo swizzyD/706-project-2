@@ -126,13 +126,13 @@ void fuzzify_pt_left() {
     light = 0;
     clear = 1;
   }
-//  else if (reading < 50) {
-  else if (reading < 50){
+  //  else if (reading < 50) {
+  else if (reading < 50) {
     light = 1;
     clear = 0;
   }
   else {
-//    clear = (reading - 50) / 550;
+    //    clear = (reading - 50) / 550;
     clear = (reading - 50) / 550;
     light = 1 - clear;
   }
@@ -157,8 +157,8 @@ void fuzzify_pt_mid() {
     light = 0;
     clear = 1;
   }
-//  else if (reading < 700) {
-  else if (reading < 80){
+  //  else if (reading < 700) {
+  else if (reading < 80) {
     light = 1;
     clear = 0;
   }
@@ -204,11 +204,11 @@ void fuzzify_pt_top() {
 void fuzzify_pt_right() {
   double fuzzy, light, clear;
   double reading = PT_Right.get_raw_reading();
-    if (reading > 600){
+  if (reading > 600) {
     light = 0;
     clear = 1;
   }
-    else if (reading < 50){
+  else if (reading < 50) {
     light = 1;
     clear = 0;
   }
@@ -231,39 +231,31 @@ void fuzzify_pt_right() {
 
 void run_inference() {
   //obstacle avoidance
-  if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear" && ir_3_fuzzy.set == "obstacle") {
-    cw(150);
-//    delay(200);
-    SerialCom->println("front and back obstacle");
-  }
-  else if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear"  && PT_top_fuzzy.set == "clear") {
-    turret_motor.Write(80); 
-    if (toggle == true){
+  if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear"  && PT_top_fuzzy.set == "clear") {
+    if (toggle == true) {
+      toggle = false;
+      turret_motor.Write(80);
       count++;
+      delay(500);
     }
-    toggle = false;
+    
     reverse(ultrasonic_fuzzy.value * 150);
-//    delay(200);
     SerialCom->println("front obstacle");
   }
   else if (ultrasonic_fuzzy.set == "clear" && ir_1_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "clear") {
     strafe_right(ir_1_fuzzy.value * 250);
-//    delay(200);
     SerialCom->println("left obstacle");
   }
   else if (ultrasonic_fuzzy.set == "clear" && ir_1_fuzzy.set == "clear" && ir_2_fuzzy.set == "obstacle") {
     strafe_left(ir_2_fuzzy.value * 250);
-//    delay(200);
     SerialCom->println("right obstacle");
   }
   else if (ultrasonic_fuzzy.set == "obstacle" && ir_1_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "clear") {
     cw(ir_1_fuzzy.value * 250);
-//    delay(200);
     SerialCom->println("left & front obstacle");
   }
   else if (ultrasonic_fuzzy.set == "obstacle" && ir_1_fuzzy.set == "clear" && ir_2_fuzzy.set == "obstacle") {
     ccw(ir_2_fuzzy.value * 250);
-//    delay(200);
     SerialCom->println("right & front obstacle");
   }
 
@@ -271,7 +263,7 @@ void run_inference() {
   else if (PT_top_fuzzy.set == "light" && (PT_mid_fuzzy.set == "light" || PT_left_fuzzy.set == "light" || PT_right_fuzzy.set == "light") && ultrasonic_fuzzy.set == "obstacle") {
     //stop();
     int pos = turret_motor.Track(PT_Mid.get_raw_reading());
-    forward(300*(1 - ultrasonic_fuzzy.value));
+    forward(300 * (1 - ultrasonic_fuzzy.value));
     SerialCom->print("top light & servo track ");
     SerialCom->println(pos);
     toggle = true;
@@ -309,9 +301,4 @@ void run_inference() {
     }
   }
 
-}
-void lillian(){
-  if (count == 2){
-    stop();
-  }
 }
