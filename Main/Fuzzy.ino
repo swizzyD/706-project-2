@@ -233,6 +233,7 @@ void run_inference() {
   //obstacle avoidance
   if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear" && ir_3_fuzzy.set == "obstacle") {
     cw(150);
+    delay(400);
     SerialCom->println("front and back obstacle");
   }
   else if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear" && ir_3_fuzzy.set == "clear" && PT_top_fuzzy.set == "clear") {
@@ -242,22 +243,27 @@ void run_inference() {
     }
     toggle = false;
     reverse(ultrasonic_fuzzy.value * 150);
+    delay(400);
     SerialCom->println("front obstacle");
   }
   else if (ultrasonic_fuzzy.set == "clear" && ir_1_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "clear") {
     strafe_right(ir_1_fuzzy.value * 250);
+    delay(400);
     SerialCom->println("left obstacle");
   }
   else if (ultrasonic_fuzzy.set == "clear" && ir_1_fuzzy.set == "clear" && ir_2_fuzzy.set == "obstacle") {
     strafe_left(ir_2_fuzzy.value * 250);
+    delay(400);
     SerialCom->println("right obstacle");
   }
   else if (ultrasonic_fuzzy.set == "obstacle" && ir_1_fuzzy.set == "obstacle" && ir_2_fuzzy.set == "clear") {
     cw(ir_1_fuzzy.value * 250);
+    delay(400);
     SerialCom->println("left & front obstacle");
   }
   else if (ultrasonic_fuzzy.set == "obstacle" && ir_1_fuzzy.set == "clear" && ir_2_fuzzy.set == "obstacle") {
     ccw(ir_2_fuzzy.value * 250);
+    delay(400);
     SerialCom->println("right & front obstacle");
   }
 
