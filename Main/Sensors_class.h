@@ -3,16 +3,12 @@ class Sensor {
     Sensor(int pin) {
       this->analogPin = pin;
     }
-    //    void set_last_val(int v) {
-    //      this->last_val = v;
-    //    }
     int get_raw_reading() {
       return analogRead(this->analogPin);
     }
 
   protected:
     int last_val;
-    //int current_reading;
     int analogPin;
 };
 

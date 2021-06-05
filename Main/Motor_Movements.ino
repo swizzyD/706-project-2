@@ -85,9 +85,3 @@ void fan_control()
     digitalWrite(FAN_PIN, LOW);
   }
 }
-
-int integrate(int val) {
-  static long integrator = 0;
-  integrator += val;
-  return integrator;
-}
