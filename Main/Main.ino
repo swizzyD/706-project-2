@@ -84,10 +84,6 @@ const int ECHO_PIN = 49;
 const unsigned int MAX_DIST = 23200;
 //--------------------------------------------------------------------------------------------------------------
 
-//-----------------------------------PID objects------------------
-PID PID_mid(0.3f, 0.0f, 0.0f, -500, 500);
-
-
 //---------------------------------------------- SENSOR OBJECTS -------------------------------------------------------------
 Infrared IR_1(A4, 25325, -1.048); //Infrared(pin,A,beta)
 Infrared IR_2(A6, 25610, -1.032);
@@ -104,12 +100,8 @@ Servo left_font_motor;  // create servo object to control Vex Motor Controller 2
 Servo left_rear_motor;  // create servo object to control Vex Motor Controller 29
 Servo right_rear_motor;  // create servo object to control Vex Motor Controller 29
 Servo right_font_motor;  // create servo object to control Vex Motor Controller 29
-//Servo turret_motor;
 Turret turret_motor(25);
-//PID turret_pid(1,0,0
 //-----------------------------------------------------------------------------------------------------------
-
-//Serial pointer
 
 #if BLUETOOTH
 SoftwareSerial hc06(2, 3);
@@ -169,7 +161,6 @@ STATE initialising() {
   SerialCom->println("INITIALISING....");
   SerialCom->println("Enabling Motors...");
   enable_motors();
-//  gyro_setup();
   turret_motor.Write(80);
   return RUNNING;
 }
@@ -184,11 +175,8 @@ STATE running() {
 
   //main loop
   if (millis() - previous_millis_1 > SAMPLING_TIME) {
-    if (count >= 2){
-      stop();
-      while(true){
-        ;;
-      }
+    if (count == 2){
+      return STOPPED;
     }
     previous_millis_1 = millis();
     fuzzify_ir_1();
@@ -201,10 +189,6 @@ STATE running() {
     fuzzify_pt_top();
     run_inference();
     fan_control();
-    //turret_motor.Track(PT_mid_fuzzy.set,PT_right_fuzzy.set,PT_left_fuzzy.set);
-//    SerialCom->println("count = ");
-//    SerialCom->println(count);
-//    turret_motor.Write(80);
   }
 
   //debug loop
@@ -278,9 +262,6 @@ STATE stopped() {
     previous_millis = millis();
     SerialCom->println("STOPPED---------");
 
-    //    int mid = PID_mid.PID_update(20, PT_Mid.get_raw_reading());
-    //    int left_error = PT_Left.get_raw_reading() - 900;
-    //    int right_error = PT_Right.get_raw_reading() - 800;
     SerialCom->print("left = ");
     SerialCom->println(PT_Left.get_raw_reading());
     SerialCom->print("right = ");
@@ -289,16 +270,10 @@ STATE stopped() {
     SerialCom->println(PT_Mid.get_raw_reading());
     SerialCom->print("top = ");
     SerialCom->println(PT_Top.get_raw_reading());
-   
     SerialCom->print("ir_3_fuzzy = ");
     SerialCom->print(IR_3.get_dist());
-
     SerialCom->print("ultrasonic = ");
     SerialCom->println(Ultrasonic.get_dist());
-
-    //      SerialCom->println(PT_Mid.get_raw_reading() + PT_Left.get_raw_reading()+PT_Right.get_raw_reading());
-    
-
 
 #ifndef NO_BATTERY_V_OK
     //500ms timed if statement to check lipo and output speed settings
