@@ -1,4 +1,5 @@
-# Project 2
+# Project 2: Obstacle Sensing and Fire Extinguishing Robot
+![image](readmephoto.png "image")
 
 ## Week 7
 ![image](Week7.gif "image")
