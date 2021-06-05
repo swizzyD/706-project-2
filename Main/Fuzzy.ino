@@ -221,9 +221,11 @@ void fuzzify_pt_right() {
 
 void run_inference() {
 
+
   if (ultrasonic_fuzzy.set == "obstacle" && PT_mid_fuzzy.set == "clear"  && PT_top_fuzzy.set == "clear") {
     turret_motor.Write(80);
     if (toggle == true) {
+
       count++;
     }
     toggle = false;
